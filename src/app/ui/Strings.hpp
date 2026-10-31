@@ -10,6 +10,7 @@ namespace sloptube::app {
 enum class Language : std::uint8_t {
     English,
     French,
+    Spanish,
 };
 
 enum class Text : std::uint8_t {
@@ -172,6 +173,12 @@ enum class Text : std::uint8_t {
     NotificationsThisWeek,
     NotificationsOlder,
     UploadedPrefix,
+    LanguageSetting,
+    LanguageSettingDetail,
+    LanguagePhone,
+    LanguageEnglish,
+    LanguageFrench,
+    LanguageSpanish,
     Count,
 };
 
