@@ -282,7 +282,7 @@ constexpr std::array<Translation, std::to_underlying(Text::Count)> kTranslations
     {Text::LanguageSettingDetail,
      {"Choose the app language", "Choisissez la langue de l'application",
       "Elige el idioma de la app"}},
-    {Text::LanguagePhone, {"Phone language", "Langue du téléphone", "Idioma del teléfono"}},
+    {Text::LanguagePhone, {"Phone", "Téléphone", "Teléfono"}},
     {Text::LanguageEnglish, {"English", "English", "English"}},
     {Text::LanguageFrench, {"Français", "Français", "Français"}},
     {Text::LanguageSpanish, {"Español", "Español", "Español"}},
@@ -313,12 +313,20 @@ Language languageFor(std::string_view isoCode) {
     return Language::English;
 }
 
+Language languageForChoice(int choice, std::string_view phoneIsoCode) {
+    if (choice >= 1 && choice <= static_cast<int>(kLanguageCodes.size())) {
+        return kLanguageCodes[static_cast<std::size_t>(choice - 1)].second;
+    }
+    return languageFor(phoneIsoCode);
+}
+
 void setLanguage(Language language) {
     g_language = language;
 }
 
 std::string_view tr(Text text) {
-    return kTranslations[std::to_underlying(text)].text[std::to_underlying(g_language)];
+    const auto& row = kTranslations[std::to_underlying(text)];
+    return row.text[std::to_underlying(g_language)];
 }
 
 } // namespace sloptube::app
