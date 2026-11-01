@@ -278,7 +278,7 @@ constexpr std::array<Translation, std::to_underlying(Text::Count)> kTranslations
     {Text::NotificationsThisWeek, {"This week", "Cette semaine", "Esta semana"}},
     {Text::NotificationsOlder, {"Older", "Plus anciennes", "Anteriores"}},
     {Text::UploadedPrefix, {"Uploaded: ", "Mise en ligne : ", "Subido: "}},
-    {Text::LanguageSetting, {"Language", "Langue", "Idioma"}},
+    {Text::LanguageSetting, {"Choose your language", "Choisissez la langue", "Elige tu idioma"}},
     {Text::LanguageSettingDetail,
      {"Choose the app language", "Choisissez la langue de l'application",
       "Elige el idioma de la app"}},
@@ -286,6 +286,12 @@ constexpr std::array<Translation, std::to_underlying(Text::Count)> kTranslations
     {Text::LanguageEnglish, {"English", "English", "English"}},
     {Text::LanguageFrench, {"Français", "Français", "Français"}},
     {Text::LanguageSpanish, {"Español", "Español", "Español"}},
+    {Text::SectionAppearance, {"Appearance", "Apparence", "Apariencia"}},
+    {Text::SectionLanguages, {"Languages", "Langues", "Idiomas"}},
+    {Text::SectionPlayer, {"Player", "Lecteur", "Reproductor"}},
+    {Text::SectionNotifications, {"Notifications", "Notifications", "Notificaciones"}},
+    {Text::SectionUpdates, {"Updates", "Mises à jour", "Actualizaciones"}},
+    {Text::SectionPrivacy, {"Privacy", "Confidentialité", "Privacidad"}},
 }};
 
 // Catch a missing or misordered row at compile time rather than showing the wrong text.
