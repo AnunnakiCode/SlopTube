@@ -23,6 +23,7 @@ void App::applySettings() {
 
 void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
     const Canvas& c = frame.canvas;
+    const Canvas medium = c.with(Weight::Medium);
     const float width = max.x - min.x;
     const float bar = c.dp(theme::kTopBarHeight);
     const float row = c.dp(kSettingRowHeight);
@@ -34,6 +35,7 @@ void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
         bool Settings::* value;
     };
 
+    // The first three belong to the player, the last one to notifications.
     constexpr std::array<Toggle, 4> kToggles{{
         {Text::BackgroundPlay, Text::BackgroundPlayDetail, &Settings::backgroundPlay},
         {Text::PictureInPicture, Text::PictureInPictureDetail, &Settings::pictureInPicture},
@@ -42,17 +44,38 @@ void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
          &Settings::uploadNotifications},
     }};
     const float gutter = c.dp(theme::kGutter);
-    const float sizeBlock = (row + c.dp(theme::kChipHeight) + gutter) * 2;
+    const float captionHeight = c.lineHeight(theme::kCaptionSize);
+    // A section is a gap, its title and a little room under it.
+    const float sectionHeight = gutter * 1.5f + captionHeight;
+    const float sections = build::kChecksForUpdates ? 6.0f : 5.0f;
+    const float chipBlock = row + c.dp(theme::kChipHeight) + gutter;
     const float updateRows = build::kChecksForUpdates ? 2 : 0;
-    const float content = sizeBlock + row * (static_cast<float>(kToggles.size() + 1) + updateRows) +
-                          gutter * 3 + c.lineHeight(theme::kCaptionSize);
+    const float content = chipBlock * 2 + sectionHeight * sections +
+                          row * (static_cast<float>(kToggles.size() + 1) + updateRows) +
+                          gutter * 3 + captionHeight;
     screen.feed->scroller.update(frame.touch, contentMin, max, content, frame.seconds, c.dp(1));
     frame.animating |= screen.feed->scroller.moving();
 
     c.list()->PushClipRect(contentMin, max, true);
     float y = contentMin.y - screen.feed->scroller.offset();
 
+    const auto section = [&](Text title) {
+        y += gutter;
+        medium.text({min.x + gutter, y}, theme::kCaptionSize, theme::kTextSecondary, tr(title));
+        y += captionHeight + gutter * 0.5f;
+    };
+    const auto toggleRow = [&](const Toggle& toggle) {
+        bool& value = m_settings.*toggle.value;
+        if (switchRow(frame, tr(toggle.label), tr(toggle.detail), {min.x, y}, width, value) &&
+            !screen.feed->scroller.moving()) {
+            value = !value;
+            later([this] { applySettings(); });
+        }
+        y += row;
+    };
+
     // Text and button size first: the setting that decides whether the rest can be read.
+    section(Text::SectionAppearance);
     (void)switchRow(frame, tr(Text::InterfaceSize), tr(Text::InterfaceSizeDetail), {min.x, y},
                     width, std::nullopt);
     y += row;
@@ -74,6 +97,7 @@ void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
     y += c.dp(theme::kChipHeight) + gutter;
 
     // Language of the interface: follow the phone, or choose one.
+    section(Text::SectionLanguages);
     (void)switchRow(frame, tr(Text::LanguageSetting), tr(Text::LanguageSettingDetail), {min.x, y},
                     width, std::nullopt);
     y += row;
@@ -96,18 +120,17 @@ void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
     }
     y += c.dp(theme::kChipHeight) + gutter;
 
-    for (const Toggle& toggle : kToggles) {
-        bool& value = m_settings.*toggle.value;
-        if (switchRow(frame, tr(toggle.label), tr(toggle.detail), {min.x, y}, width, value) &&
-            !screen.feed->scroller.moving()) {
-            value = !value;
-            later([this] { applySettings(); });
-        }
-        y += row;
+    section(Text::SectionPlayer);
+    for (std::size_t i = 0; i < 3; ++i) {
+        toggleRow(kToggles[i]);
     }
+
+    section(Text::SectionNotifications);
+    toggleRow(kToggles[3]);
 
     // Updates of the app, for builds that can install them (release builds).
     if (build::kChecksForUpdates) {
+        section(Text::SectionUpdates);
         if (switchRow(frame, tr(Text::CheckUpdatesAutomatically), tr(Text::CheckUpdatesDetail),
                       {min.x, y}, width, m_settings.checkUpdates) &&
             !screen.feed->scroller.moving()) {
@@ -127,6 +150,7 @@ void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
     }
 
     // The search history, kept on the phone only.
+    section(Text::SectionPrivacy);
     const bool empty = m_searchHistory.empty();
     if (switchRow(frame, tr(Text::ClearSearchHistory),
                   tr(empty ? Text::SearchHistoryEmpty : Text::ClearSearchHistoryDetail), {min.x, y},
