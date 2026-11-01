@@ -179,6 +179,12 @@ enum class Text : std::uint8_t {
     LanguageEnglish,
     LanguageFrench,
     LanguageSpanish,
+    SectionAppearance,
+    SectionLanguages,
+    SectionPlayer,
+    SectionNotifications,
+    SectionUpdates,
+    SectionPrivacy,
     Count,
 };
 
