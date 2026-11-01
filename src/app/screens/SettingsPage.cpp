@@ -15,6 +15,7 @@ namespace {
 // Groups that moved out of the main list have a page of their own: the screen's argument names
 // it, and an empty argument is the main list.
 constexpr std::string_view kAppearancePage = "appearance";
+constexpr std::string_view kLanguagePage = "language";
 
 } // namespace
 
@@ -36,6 +37,7 @@ void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
     const float row = c.dp(kSettingRowHeight);
     const ImVec2 contentMin{min.x, min.y + bar};
     const bool appearancePage = screen.argument == kAppearancePage;
+    const bool languagePage = screen.argument == kLanguagePage;
 
     struct Toggle {
         Text label;
@@ -53,17 +55,20 @@ void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
     }};
     constexpr std::array<Text, kInterfaceSizes> kSizeLabels{Text::SizeNormal, Text::SizeLarge,
                                                             Text::SizeExtraLarge};
+    constexpr std::array<Text, kLanguageChoices> kLanguageLabels{
+        Text::LanguagePhone, Text::LanguageEnglish, Text::LanguageFrench, Text::LanguageSpanish};
     const float gutter = c.dp(theme::kGutter);
     const float captionHeight = c.lineHeight(theme::kCaptionSize);
     // A section is a gap, its title and a little room under it.
     const float sectionHeight = gutter * 1.5f + captionHeight;
-    const float sections = build::kChecksForUpdates ? 5.0f : 4.0f;
+    const float sections = build::kChecksForUpdates ? 4.0f : 3.0f;
     const float chipBlock = row + c.dp(theme::kChipHeight) + gutter;
     const float updateRows = build::kChecksForUpdates ? 2 : 0;
-    const float mainContent = row + chipBlock + sectionHeight * sections +
+    // Two rows open the Appearance and Languages pages.
+    const float mainContent = row * 2 + sectionHeight * sections +
                               row * (static_cast<float>(kToggles.size() + 1) + updateRows) +
                               gutter * 3 + captionHeight;
-    const float content = appearancePage ? chipBlock + gutter * 2 : mainContent;
+    const float content = appearancePage || languagePage ? chipBlock + gutter * 2 : mainContent;
     screen.feed->scroller.update(frame.touch, contentMin, max, content, frame.seconds, c.dp(1));
     frame.animating |= screen.feed->scroller.moving();
 
@@ -82,6 +87,22 @@ void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
             !screen.feed->scroller.moving()) {
             value = !value;
             later([this] { applySettings(); });
+        }
+        y += row;
+    };
+    // A row with just a large title that opens one of the pages of Settings.
+    const auto pageRow = [&](Text label, std::string_view page) {
+        const ImVec2 rowMin{min.x, y};
+        const ImVec2 rowMax{max.x, y + row};
+        drawPressed(frame, rowMin, rowMax);
+        medium.text({min.x + gutter, y + (row - c.lineHeight(theme::kTitleSize)) * 0.5f},
+                    theme::kTitleSize, theme::kTextPrimary, tr(label));
+        if (!screen.feed->scroller.moving() && frame.touch.tapped(rowMin, rowMax)) {
+            later([this, label, page] {
+                push(Screen{.route = Route::Settings,
+                            .argument = std::string(page),
+                            .title = std::string(tr(label))});
+            });
         }
         y += row;
     };
@@ -104,29 +125,11 @@ void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
             }
         }
         y += c.dp(theme::kChipHeight) + gutter;
-    } else {
-        // Appearance opens its own page, showing the size in use.
-        const Text sizeLabel = kSizeLabels[static_cast<std::size_t>(m_settings.interfaceSize)];
-        if (switchRow(frame, tr(Text::SectionAppearance), tr(sizeLabel), {min.x, y}, width,
-                      std::nullopt) &&
-            !screen.feed->scroller.moving()) {
-            later([this] {
-                push(Screen{.route = Route::Settings,
-                            .argument = std::string(kAppearancePage),
-                            .title = std::string(tr(Text::SectionAppearance))});
-            });
-        }
-        y += row;
-
+    } else if (languagePage) {
         // Language of the interface: follow the phone, or choose one.
-        section(Text::SectionLanguages);
         (void)switchRow(frame, tr(Text::LanguageSetting), tr(Text::LanguageSettingDetail),
                         {min.x, y}, width, std::nullopt);
         y += row;
-        constexpr std::array<Text, kLanguageChoices> kLanguageLabels{Text::LanguagePhone,
-                                                                     Text::LanguageEnglish,
-                                                                     Text::LanguageFrench,
-                                                                     Text::LanguageSpanish};
         for (int choice = 0; choice < kLanguageChoices; ++choice) {
             const bool selected = m_settings.language == choice;
             if (chipButton(frame, tr(kLanguageLabels[static_cast<std::size_t>(choice)]), {x, y},
@@ -141,6 +144,9 @@ void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
             }
         }
         y += c.dp(theme::kChipHeight) + gutter;
+    } else {
+        pageRow(Text::SectionAppearance, kAppearancePage);
+        pageRow(Text::SectionLanguages, kLanguagePage);
 
         section(Text::SectionPlayer);
         for (std::size_t i = 0; i < 3; ++i) {
@@ -192,7 +198,14 @@ void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
     }
     c.list()->PopClipRect();
 
-    drawTitleBar(frame, screen.title, {min.x, 0}, width);
+    // The title is drawn from the language in use, so changing it here updates it at once.
+    Text titleText = Text::Settings;
+    if (appearancePage) {
+        titleText = Text::SectionAppearance;
+    } else if (languagePage) {
+        titleText = Text::SectionLanguages;
+    }
+    drawTitleBar(frame, std::string(tr(titleText)), {min.x, 0}, width);
 }
 
 } // namespace sloptube::app
