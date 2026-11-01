@@ -30,6 +30,8 @@ Settings Settings::load(const std::filesystem::path& file) {
     read("/checkUpdates", settings.checkUpdates);
     settings.interfaceSize = static_cast<int>(
         std::clamp<std::int64_t>(json::integer(*root, "/interfaceSize"), 0, kInterfaceSizes - 1));
+    settings.language = static_cast<int>(
+        std::clamp<std::int64_t>(json::integer(*root, "/language"), 0, kLanguageChoices - 1));
     return settings;
 }
 
@@ -42,6 +44,7 @@ void Settings::save(const std::filesystem::path& file) const {
         .field("uploadNotifications", uploadNotifications)
         .field("checkUpdates", checkUpdates)
         .field("interfaceSize", static_cast<std::int64_t>(interfaceSize))
+        .field("language", static_cast<std::int64_t>(language))
         .endObject();
     writeText(file, out.take());
 }
