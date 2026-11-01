@@ -42,7 +42,7 @@ void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
          &Settings::uploadNotifications},
     }};
     const float gutter = c.dp(theme::kGutter);
-    const float sizeBlock = row + c.dp(theme::kChipHeight) + gutter;
+    const float sizeBlock = (row + c.dp(theme::kChipHeight) + gutter) * 2;
     const float updateRows = build::kChecksForUpdates ? 2 : 0;
     const float content = sizeBlock + row * (static_cast<float>(kToggles.size() + 1) + updateRows) +
                           gutter * 3 + c.lineHeight(theme::kCaptionSize);
@@ -68,6 +68,29 @@ void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
             later([this] {
                 applySettings();
                 applyScale();
+            });
+        }
+    }
+    y += c.dp(theme::kChipHeight) + gutter;
+
+    // Language of the interface: follow the phone, or choose one.
+    (void)switchRow(frame, tr(Text::LanguageSetting), tr(Text::LanguageSettingDetail), {min.x, y},
+                    width, std::nullopt);
+    y += row;
+    constexpr std::array<Text, kLanguageChoices> kLanguageLabels{Text::LanguagePhone,
+                                                                 Text::LanguageEnglish,
+                                                                 Text::LanguageFrench,
+                                                                 Text::LanguageSpanish};
+    x = min.x + gutter;
+    for (int choice = 0; choice < kLanguageChoices; ++choice) {
+        const bool selected = m_settings.language == choice;
+        if (chipButton(frame, tr(kLanguageLabels[static_cast<std::size_t>(choice)]), {x, y},
+                       selected, x) &&
+            !selected && !screen.feed->scroller.moving()) {
+            m_settings.language = choice;
+            later([this] {
+                applySettings();
+                setLanguage(languageForChoice(m_settings.language, m_platform.locale().language));
             });
         }
     }
