@@ -185,6 +185,9 @@ enum class Text : std::uint8_t {
 // Picks the language matching an ISO 639-1 code, falling back to English.
 [[nodiscard]] Language languageFor(std::string_view isoCode);
 
+// The language of a Settings choice: 0 follows the phone, then English, French and Spanish.
+[[nodiscard]] Language languageForChoice(int choice, std::string_view phoneIsoCode);
+
 void setLanguage(Language language);
 
 [[nodiscard]] std::string_view tr(Text text);
