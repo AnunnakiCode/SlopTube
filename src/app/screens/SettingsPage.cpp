@@ -1,5 +1,5 @@
-// Settings: playback in the background and in picture-in-picture, autoplay, upload
-// notifications and the search history.
+// Settings: a list of categories, each opening a page of its own: appearance, languages,
+// playback, notifications, updates and the search history.
 
 #include "app/App.hpp"
 #include "app/DataFiles.hpp"
@@ -12,10 +12,14 @@
 namespace sloptube::app {
 namespace {
 
-// Groups that moved out of the main list have a page of their own: the screen's argument names
-// it, and an empty argument is the main list.
+// Every category has a page of its own: the screen's argument names it, and an empty argument
+// is the main list.
 constexpr std::string_view kAppearancePage = "appearance";
 constexpr std::string_view kLanguagePage = "language";
+constexpr std::string_view kPlayerPage = "player";
+constexpr std::string_view kNotificationsPage = "notifications";
+constexpr std::string_view kUpdatesPage = "updates";
+constexpr std::string_view kPrivacyPage = "privacy";
 
 } // namespace
 
@@ -36,8 +40,7 @@ void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
     const float bar = c.dp(theme::kTopBarHeight);
     const float row = c.dp(kSettingRowHeight);
     const ImVec2 contentMin{min.x, min.y + bar};
-    const bool appearancePage = screen.argument == kAppearancePage;
-    const bool languagePage = screen.argument == kLanguagePage;
+    const std::string_view page = screen.argument;
 
     struct Toggle {
         Text label;
@@ -59,16 +62,19 @@ void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
         Text::LanguagePhone, Text::LanguageEnglish, Text::LanguageFrench, Text::LanguageSpanish};
     const float gutter = c.dp(theme::kGutter);
     const float captionHeight = c.lineHeight(theme::kCaptionSize);
-    // A section is a gap, its title and a little room under it.
-    const float sectionHeight = gutter * 1.5f + captionHeight;
-    const float sections = build::kChecksForUpdates ? 4.0f : 3.0f;
     const float chipBlock = row + c.dp(theme::kChipHeight) + gutter;
-    const float updateRows = build::kChecksForUpdates ? 2 : 0;
-    // Two rows open the Appearance and Languages pages.
-    const float mainContent = row * 2 + sectionHeight * sections +
-                              row * (static_cast<float>(kToggles.size() + 1) + updateRows) +
-                              gutter * 3 + captionHeight;
-    const float content = appearancePage || languagePage ? chipBlock + gutter * 2 : mainContent;
+    // The main list has one row for each page; updates only exist in release builds.
+    const float pageRows = build::kChecksForUpdates ? 6.0f : 5.0f;
+    float content = row * pageRows + gutter * 3 + captionHeight;
+    if (page == kAppearancePage || page == kLanguagePage) {
+        content = chipBlock + gutter * 2;
+    } else if (page == kPlayerPage) {
+        content = row * 3 + gutter * 2;
+    } else if (page == kNotificationsPage || page == kPrivacyPage) {
+        content = row + gutter * 2;
+    } else if (page == kUpdatesPage) {
+        content = row * 2 + gutter * 2;
+    }
     screen.feed->scroller.update(frame.touch, contentMin, max, content, frame.seconds, c.dp(1));
     frame.animating |= screen.feed->scroller.moving();
 
@@ -76,11 +82,6 @@ void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
     float y = contentMin.y - screen.feed->scroller.offset();
     float x = min.x + gutter;
 
-    const auto section = [&](Text title) {
-        y += gutter;
-        medium.text({min.x + gutter, y}, theme::kCaptionSize, theme::kTextSecondary, tr(title));
-        y += captionHeight + gutter * 0.5f;
-    };
     const auto toggleRow = [&](const Toggle& toggle) {
         bool& value = m_settings.*toggle.value;
         if (switchRow(frame, tr(toggle.label), tr(toggle.detail), {min.x, y}, width, value) &&
@@ -91,23 +92,23 @@ void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
         y += row;
     };
     // A row with just a large title that opens one of the pages of Settings.
-    const auto pageRow = [&](Text label, std::string_view page) {
+    const auto pageRow = [&](Text label, std::string_view target) {
         const ImVec2 rowMin{min.x, y};
         const ImVec2 rowMax{max.x, y + row};
         drawPressed(frame, rowMin, rowMax);
         medium.text({min.x + gutter, y + (row - c.lineHeight(theme::kTitleSize)) * 0.5f},
                     theme::kTitleSize, theme::kTextPrimary, tr(label));
         if (!screen.feed->scroller.moving() && frame.touch.tapped(rowMin, rowMax)) {
-            later([this, label, page] {
+            later([this, label, target] {
                 push(Screen{.route = Route::Settings,
-                            .argument = std::string(page),
+                            .argument = std::string(target),
                             .title = std::string(tr(label))});
             });
         }
         y += row;
     };
 
-    if (appearancePage) {
+    if (page == kAppearancePage) {
         // Text and button size: the setting that decides whether the rest can be read.
         (void)switchRow(frame, tr(Text::InterfaceSize), tr(Text::InterfaceSizeDetail), {min.x, y},
                         width, std::nullopt);
@@ -125,7 +126,7 @@ void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
             }
         }
         y += c.dp(theme::kChipHeight) + gutter;
-    } else if (languagePage) {
+    } else if (page == kLanguagePage) {
         // Language of the interface: follow the phone, or choose one.
         (void)switchRow(frame, tr(Text::LanguageSetting), tr(Text::LanguageSettingDetail),
                         {min.x, y}, width, std::nullopt);
@@ -144,41 +145,31 @@ void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
             }
         }
         y += c.dp(theme::kChipHeight) + gutter;
-    } else {
-        pageRow(Text::SectionAppearance, kAppearancePage);
-        pageRow(Text::SectionLanguages, kLanguagePage);
-
-        section(Text::SectionPlayer);
+    } else if (page == kPlayerPage) {
         for (std::size_t i = 0; i < 3; ++i) {
             toggleRow(kToggles[i]);
         }
-
-        section(Text::SectionNotifications);
+    } else if (page == kNotificationsPage) {
         toggleRow(kToggles[3]);
-
-        // Updates of the app, for builds that can install them (release builds).
-        if (build::kChecksForUpdates) {
-            section(Text::SectionUpdates);
-            if (switchRow(frame, tr(Text::CheckUpdatesAutomatically), tr(Text::CheckUpdatesDetail),
-                          {min.x, y}, width, m_settings.checkUpdates) &&
-                !screen.feed->scroller.moving()) {
-                m_settings.checkUpdates = !m_settings.checkUpdates;
-                later([this] { applySettings(); });
-            }
-            y += row;
-            const std::string current =
-                std::vformat(tr(Text::CurrentVersion), std::make_format_args(build::kVersion));
-            if (switchRow(frame,
-                          tr(m_update.checking ? Text::CheckingForUpdates : Text::CheckForUpdates),
-                          current, {min.x, y}, width, std::nullopt) &&
-                !screen.feed->scroller.moving()) {
-                later([this] { checkForUpdate(true); });
-            }
-            y += row;
+    } else if (page == kUpdatesPage) {
+        if (switchRow(frame, tr(Text::CheckUpdatesAutomatically), tr(Text::CheckUpdatesDetail),
+                      {min.x, y}, width, m_settings.checkUpdates) &&
+            !screen.feed->scroller.moving()) {
+            m_settings.checkUpdates = !m_settings.checkUpdates;
+            later([this] { applySettings(); });
         }
-
+        y += row;
+        const std::string current =
+            std::vformat(tr(Text::CurrentVersion), std::make_format_args(build::kVersion));
+        if (switchRow(frame,
+                      tr(m_update.checking ? Text::CheckingForUpdates : Text::CheckForUpdates),
+                      current, {min.x, y}, width, std::nullopt) &&
+            !screen.feed->scroller.moving()) {
+            later([this] { checkForUpdate(true); });
+        }
+        y += row;
+    } else if (page == kPrivacyPage) {
         // The search history, kept on the phone only.
-        section(Text::SectionPrivacy);
         const bool empty = m_searchHistory.empty();
         if (switchRow(frame, tr(Text::ClearSearchHistory),
                       tr(empty ? Text::SearchHistoryEmpty : Text::ClearSearchHistoryDetail),
@@ -189,7 +180,17 @@ void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
             std::filesystem::remove(m_platform.dataDirectory() / kSearchHistoryFile, error);
             showToast(tr(Text::SearchHistoryCleared));
         }
-        y += row + gutter * 2;
+        y += row;
+    } else {
+        pageRow(Text::SectionAppearance, kAppearancePage);
+        pageRow(Text::SectionLanguages, kLanguagePage);
+        pageRow(Text::SectionPlayer, kPlayerPage);
+        pageRow(Text::SectionNotifications, kNotificationsPage);
+        if (build::kChecksForUpdates) {
+            pageRow(Text::SectionUpdates, kUpdatesPage);
+        }
+        pageRow(Text::SectionPrivacy, kPrivacyPage);
+        y += gutter * 2;
 
         const std::string version =
             std::string(build::kAppName) + ' ' + std::string(build::kVersion);
@@ -200,10 +201,18 @@ void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
 
     // The title is drawn from the language in use, so changing it here updates it at once.
     Text titleText = Text::Settings;
-    if (appearancePage) {
+    if (page == kAppearancePage) {
         titleText = Text::SectionAppearance;
-    } else if (languagePage) {
+    } else if (page == kLanguagePage) {
         titleText = Text::SectionLanguages;
+    } else if (page == kPlayerPage) {
+        titleText = Text::SectionPlayer;
+    } else if (page == kNotificationsPage) {
+        titleText = Text::SectionNotifications;
+    } else if (page == kUpdatesPage) {
+        titleText = Text::SectionUpdates;
+    } else if (page == kPrivacyPage) {
+        titleText = Text::SectionPrivacy;
     }
     drawTitleBar(frame, std::string(tr(titleText)), {min.x, 0}, width);
 }
