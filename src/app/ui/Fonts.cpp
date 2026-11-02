@@ -93,7 +93,8 @@ bool isEmojiModifier(char32_t c) {
 // supplementary planes' pictographs.
 bool isEmojiBlock(char32_t c) {
     return (c >= 0x2300 && c <= 0x23FF) || (c >= 0x2600 && c <= 0x27BF) ||
-           (c >= 0x2B00 && c <= 0x2BFF) || (c >= 0x1F000 && c <= 0x1FAFF);
+           (c >= 0x2B00 && c <= 0x2BFF) || (c >= 0x1F000 && c <= 0x1FAFF) ||
+           (c >= 0xF0000 && c <= 0xF02A3);
 }
 
 // Each question to the platform is a JNI round trip of about a millisecond: the answers are
