@@ -185,6 +185,11 @@ enum class Text : std::uint8_t {
     SectionNotifications,
     SectionUpdates,
     SectionPrivacy,
+    ThemeSetting,
+    ThemeSettingDetail,
+    ThemeDevice,
+    ThemeLight,
+    ThemeDark,
     Count,
 };
 
