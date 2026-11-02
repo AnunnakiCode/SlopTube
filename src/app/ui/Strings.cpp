@@ -292,7 +292,7 @@ constexpr std::array<Translation, std::to_underlying(Text::Count)> kTranslations
     {Text::SectionNotifications, {"Notifications", "Notifications", "Notificaciones"}},
     {Text::SectionUpdates, {"Updates", "Mises à jour", "Actualizaciones"}},
     {Text::SectionPrivacy, {"Privacy", "Confidentialité", "Privacidad"}},
-    {Text::ThemeSetting, {"Theme", "Thème", "Aspecto"}},
+        {Text::ThemeSetting, {"Theme", "Thème", "Aspecto"}},
     {Text::ThemeSettingDetail,
      {"Choose which theme to use", "Choisissez le thème à utiliser", "Elige qué tema poner"}},
     {Text::ThemeDevice,
