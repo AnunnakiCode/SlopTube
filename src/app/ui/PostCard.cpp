@@ -159,10 +159,7 @@ void drawChoices(const Canvas& c, const innertube::Post& post, ImVec2 min, float
                width - padding * 2, theme::kBodySize, theme::kTextPrimary, choice);
         y += height + c.dp(kChoiceGap);
     }
-    if (!post.votes.empty()) {
-        c.text({min.x, y}, theme::kCaptionSize, theme::kTextSecondary, post.votes);
-    }
-    }
+    
     if (!post.votes.empty()) {
         c.text({min.x, y}, theme::kCaptionSize, theme::kTextSecondary, post.votes);
     }
