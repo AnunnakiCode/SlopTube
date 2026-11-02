@@ -86,6 +86,8 @@ ImVec2 Canvas::measure(float sizeSp, std::string_view text) const {
     if (text.empty()) {
         return {}; // Also guards ImGui from strlen() on a null data pointer.
     }
+    const std::string folded = foldFlags(text);
+    text = folded;
     ImVec2 extent;
     if (const text::Paragraph* laid = text::layoutBidi(m_font, size, text, FLT_MAX, INT_MAX)) {
         for (const text::VisualLine& visual : laid->lines) {
