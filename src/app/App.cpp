@@ -154,6 +154,8 @@ App::App(android_app* native)
     , m_player(m_http, [looper = native->looper] { ALooper_wake(looper); })
     , m_tasks(kWorkerThreads, [looper = native->looper] { ALooper_wake(looper); }) {
     setLanguage(languageForChoice(m_settings.language, m_platform.locale().language));
+    theme::deviceDark =
+        AConfiguration_getUiModeNight(native->config) == ACONFIGURATION_UI_MODE_NIGHT_YES;
     for (auto& feed : m_tabFeeds) {
         feed = std::make_shared<Feed>();
     }
