@@ -224,10 +224,10 @@ void App::drawShortsShelf(Frame& frame, ImVec2 origin, float width, std::size_t 
         if (frame.touch.tapped({x, std::max(y, clipMin.y)}, {max.x, std::min(max.y, clipMax.y)})) {
             later([this, index = first + i] { openShort(index); });
         }
-    }
+void    }
 }
 
-void App::drawShorts(Frame& frame, ImVec2 min, ImVec2 max) {
+ App::drawShorts(Frame& frame, ImVec2 min, ImVec2 max) {
     const Canvas& c = frame.canvas;
     const auto& feed = m_tabFeeds[std::to_underlying(Tab::Shorts)];
     c.rect(min, max, IM_COL32_BLACK);
@@ -380,6 +380,7 @@ void App::drawLikeBurst(Frame& frame) {
 
 void App::drawShort(Frame& frame, const innertube::Item& item, bool current, ImVec2 min,
                     ImVec2 max) {
+    const theme::DarkScope darkColours;
     const Canvas& c = frame.canvas;
     const Canvas medium = c.with(Weight::Medium);
     const float gutter = c.dp(theme::kGutter);
