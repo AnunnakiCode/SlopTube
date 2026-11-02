@@ -85,6 +85,7 @@ inline bool isDark = true;
 
 inline void apply(bool dark) {
     const Palette& palette = dark ? kDarkPalette : kLightPalette;
+    isDark = dark;
     kBackground = palette.background;
     kSurface = palette.surface;
     kSurfaceRaised = palette.surfaceRaised;
@@ -103,6 +104,18 @@ inline void apply(bool dark) {
 inline void applyMode(int mode) {
     apply(mode == 0 ? deviceDark : mode == 2);
 }
+
+// While alive, the dark colours are used whatever the theme: for what is drawn over a video.
+class DarkScope {
+public:
+    DarkScope() : m_wasDark(isDark) { apply(true); }
+    ~DarkScope() { apply(m_wasDark); }
+    DarkScope(const DarkScope&) = delete;
+    DarkScope& operator=(const DarkScope&) = delete;
+
+private:
+    bool m_wasDark;
+};
 
 // Layout (dp).
 inline constexpr float kTopBarHeight = 48;
