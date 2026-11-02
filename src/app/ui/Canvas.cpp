@@ -57,7 +57,7 @@ std::string foldFlags(std::string_view text) {
             out.push_back(text[i++]);
         }
     }
-    return out;
+        return out;
 }
 
 } // namespace
@@ -72,8 +72,10 @@ void Canvas::draw(ImVec2 position, float size, ImU32 color, std::string_view tex
     if (text.empty()) {
         return; // ImGui would strlen() a null data pointer.
     }
-    m_list->AddText(m_font, size, position, color, text.data(), text.data() + text.size());
+    const std::string folded = foldFlags(text);
+    m_list->AddText(m_font, size, position, color, folded.data(), folded.data() + folded.size());
 }
+
 
 float Canvas::lineHeight(float sizeSp) const {
     return dp(sizeSp) * m_fonts.lineSpacing;
