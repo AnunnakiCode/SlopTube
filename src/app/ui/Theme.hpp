@@ -54,8 +54,9 @@ inline constexpr Palette kLightPalette{
     .divider = IM_COL32(0x00, 0x00, 0x00, 0x1a),
 };
 
-// The colours in use: dark until apply() says otherwise.
-inline ImU32 kBackground = kDarkPalette.background;
+// The colours in use: dark until apply() says otherwise. The packaging script reads the literal
+// kBackground below for the colour of the Android window, so it stays in this form.
+inline ImU32 kBackground = IM_COL32(0x0f, 0x0f, 0x0f, 0xff);
 inline ImU32 kSurface = kDarkPalette.surface;
 inline ImU32 kSurfaceRaised = kDarkPalette.surfaceRaised;
 inline ImU32 kToast = kDarkPalette.toast;
