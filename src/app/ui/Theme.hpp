@@ -8,27 +8,98 @@
 // theme; dimensions are in density-independent pixels (dp) or scale-independent pixels (sp).
 namespace sloptube::app::theme {
 
-inline constexpr ImU32 kBackground = IM_COL32(0x0f, 0x0f, 0x0f, 0xff);
-inline constexpr ImU32 kSurface = IM_COL32(0x27, 0x27, 0x27, 0xff);
-inline constexpr ImU32 kSurfaceRaised = IM_COL32(0x21, 0x21, 0x21, 0xff); // Bottom sheets.
-inline constexpr ImU32 kToast = IM_COL32(0xf1, 0xf1, 0xf1, 0xf0);
-inline constexpr ImU32 kSurfacePressed = IM_COL32(0x3f, 0x3f, 0x3f, 0xff);
-inline constexpr ImU32 kPlaceholder = IM_COL32(0x1f, 0x1f, 0x1f, 0xff);
-inline constexpr ImU32 kTextPrimary = IM_COL32(0xf1, 0xf1, 0xf1, 0xff);
-inline constexpr ImU32 kTextSecondary = IM_COL32(0xaa, 0xaa, 0xaa, 0xff);
-inline constexpr ImU32 kTextOnLight = IM_COL32(0x0f, 0x0f, 0x0f, 0xff);
+// The colours that change with the appearance (dark or light), side by side.
+struct Palette {
+    ImU32 background;
+    ImU32 surface;
+    ImU32 surfaceRaised; // Bottom sheets.
+    ImU32 toast;
+    ImU32 surfacePressed;
+    ImU32 placeholder;
+    ImU32 textPrimary;
+    ImU32 textSecondary;
+    ImU32 textOnLight; // Text over a fill of textPrimary.
+    ImU32 link;
+    ImU32 outline;
+    ImU32 divider;
+};
+
+inline constexpr Palette kDarkPalette{
+    .background = IM_COL32(0x0f, 0x0f, 0x0f, 0xff),
+    .surface = IM_COL32(0x27, 0x27, 0x27, 0xff),
+    .surfaceRaised = IM_COL32(0x21, 0x21, 0x21, 0xff),
+    .toast = IM_COL32(0xf1, 0xf1, 0xf1, 0xf0),
+    .surfacePressed = IM_COL32(0x3f, 0x3f, 0x3f, 0xff),
+    .placeholder = IM_COL32(0x1f, 0x1f, 0x1f, 0xff),
+    .textPrimary = IM_COL32(0xf1, 0xf1, 0xf1, 0xff),
+    .textSecondary = IM_COL32(0xaa, 0xaa, 0xaa, 0xff),
+    .textOnLight = IM_COL32(0x0f, 0x0f, 0x0f, 0xff),
+    .link = IM_COL32(0x3e, 0xa6, 0xff, 0xff),
+    .outline = IM_COL32(0x4c, 0x4c, 0x4c, 0xff),
+    .divider = IM_COL32(0xff, 0xff, 0xff, 0x1a),
+};
+
+inline constexpr Palette kLightPalette{
+    .background = IM_COL32(0xff, 0xff, 0xff, 0xff),
+    .surface = IM_COL32(0xf2, 0xf2, 0xf2, 0xff),
+    .surfaceRaised = IM_COL32(0xff, 0xff, 0xff, 0xff),
+    .toast = IM_COL32(0x0f, 0x0f, 0x0f, 0xf0),
+    .surfacePressed = IM_COL32(0xe5, 0xe5, 0xe5, 0xff),
+    .placeholder = IM_COL32(0xf2, 0xf2, 0xf2, 0xff),
+    .textPrimary = IM_COL32(0x0f, 0x0f, 0x0f, 0xff),
+    .textSecondary = IM_COL32(0x60, 0x60, 0x60, 0xff),
+    .textOnLight = IM_COL32(0xff, 0xff, 0xff, 0xff),
+    .link = IM_COL32(0x06, 0x5f, 0xd4, 0xff),
+    .outline = IM_COL32(0xd0, 0xd0, 0xd0, 0xff),
+    .divider = IM_COL32(0x00, 0x00, 0x00, 0x1a),
+};
+
+// The colours in use: dark until apply() says otherwise.
+inline ImU32 kBackground = kDarkPalette.background;
+inline ImU32 kSurface = kDarkPalette.surface;
+inline ImU32 kSurfaceRaised = kDarkPalette.surfaceRaised;
+inline ImU32 kToast = kDarkPalette.toast;
+inline ImU32 kSurfacePressed = kDarkPalette.surfacePressed;
+inline ImU32 kPlaceholder = kDarkPalette.placeholder;
+inline ImU32 kTextPrimary = kDarkPalette.textPrimary;
+inline ImU32 kTextSecondary = kDarkPalette.textSecondary;
+inline ImU32 kTextOnLight = kDarkPalette.textOnLight;
+inline ImU32 kLink = kDarkPalette.link;
+inline ImU32 kOutline = kDarkPalette.outline;
+inline ImU32 kDivider = kDarkPalette.divider;
+
 inline constexpr ImU32 kAccent = IM_COL32(0xff, 0x00, 0x33, 0xff);
-inline constexpr ImU32 kLink = IM_COL32(0x3e, 0xa6, 0xff, 0xff);
-// Measured on the official app (Galaxy A14): the unread count on the bell, and the 1 dp border of
-// outlined buttons ("Accounts", the second profile button).
+// Measured on the official app (Galaxy A14): the unread count on the bell.
 inline constexpr ImU32 kBadgeRed = IM_COL32(0xe1, 0x00, 0x2d, 0xff);
-inline constexpr ImU32 kOutline = IM_COL32(0x4c, 0x4c, 0x4c, 0xff);
 inline constexpr ImU32 kBadge = IM_COL32(0x00, 0x00, 0x00, 0xcc);
 inline constexpr ImU32 kScrim = IM_COL32(0x00, 0x00, 0x00, 0x66);
-inline constexpr ImU32 kDivider = IM_COL32(0xff, 0xff, 0xff, 0x1a);
 inline constexpr ImU32 kTrack = IM_COL32(0xff, 0xff, 0xff, 0x4d);
 // Round buttons and labels over the video (the official app's white at 30 %).
 inline constexpr ImU32 kOverlayButton = IM_COL32(0xff, 0xff, 0xff, 0x4d);
+
+// Whether the phone is in its dark mode, read when the app starts.
+inline bool deviceDark = true;
+
+inline void apply(bool dark) {
+    const Palette& palette = dark ? kDarkPalette : kLightPalette;
+    kBackground = palette.background;
+    kSurface = palette.surface;
+    kSurfaceRaised = palette.surfaceRaised;
+    kToast = palette.toast;
+    kSurfacePressed = palette.surfacePressed;
+    kPlaceholder = palette.placeholder;
+    kTextPrimary = palette.textPrimary;
+    kTextSecondary = palette.textSecondary;
+    kTextOnLight = palette.textOnLight;
+    kLink = palette.link;
+    kOutline = palette.outline;
+    kDivider = palette.divider;
+}
+
+// Settings::appearance: 0 follows the phone, 1 light, 2 dark.
+inline void applyMode(int mode) {
+    apply(mode == 0 ? deviceDark : mode == 2);
+}
 
 // Layout (dp).
 inline constexpr float kTopBarHeight = 48;
