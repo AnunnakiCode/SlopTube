@@ -170,7 +170,7 @@ App::App(android_app* native)
     io.ConfigErrorRecoveryEnableTooltip = false;
 
     // The interface size (Settings, and Android's text size) sets the density everything uses.
-        m_settings = Settings::load(m_platform.dataDirectory() / kSettingsFile);
+    m_settings = Settings::load(m_platform.dataDirectory() / kSettingsFile);
     setLanguage(languageForChoice(m_settings.language, m_platform.locale().language));
     theme::applyMode(m_settings.appearance);
     applyScale();
