@@ -80,6 +80,8 @@ inline constexpr ImU32 kOverlayButton = IM_COL32(0xff, 0xff, 0xff, 0x4d);
 
 // Whether the phone is in its dark mode, read when the app starts.
 inline bool deviceDark = true;
+// Whether the dark colours are the ones in use.
+inline bool isDark = true;
 
 inline void apply(bool dark) {
     const Palette& palette = dark ? kDarkPalette : kLightPalette;
