@@ -458,6 +458,17 @@ jobject Platform::vibrator() {
 }
 
 jstring Platform::codepointString(char32_t codepoint) {
+    if (codepoint >= 0xF0000 && codepoint <= 0xF02A3) {
+        const char32_t idx = codepoint - 0xF0000;
+        const char32_t cp1 = 0x1F1E6 + (idx / 26) - 0x10000;
+        const char32_t cp2 = 0x1F1E6 + (idx % 26) - 0x10000;
+        const std::array<jchar, 4> flagUnits{
+            static_cast<jchar>(0xD800 + (cp1 >> 10)),
+            static_cast<jchar>(0xDC00 + (cp1 & 0x3FF)),
+            static_cast<jchar>(0xD800 + (cp2 >> 10)),
+            static_cast<jchar>(0xDC00 + (cp2 & 0x3FF))};
+        return m_env->NewString(flagUnits.data(), 4);
+    }
     std::array<jchar, 2> units{};
     jsize length = 1;
     if (codepoint > 0xFFFF) {
