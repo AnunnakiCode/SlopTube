@@ -60,13 +60,18 @@ void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
                                                             Text::SizeExtraLarge};
     constexpr std::array<Text, kLanguageChoices> kLanguageLabels{
         Text::LanguagePhone, Text::LanguageEnglish, Text::LanguageFrench, Text::LanguageSpanish};
+    constexpr std::array<Text, kAppearanceChoices> kThemeLabels{Text::ThemeDevice, Text::ThemeLight,
+                                                                Text::ThemeDark};
     const float gutter = c.dp(theme::kGutter);
     const float captionHeight = c.lineHeight(theme::kCaptionSize);
     const float chipBlock = row + c.dp(theme::kChipHeight) + gutter;
     // The main list has one row for each page; updates only exist in release builds.
     const float pageRows = build::kChecksForUpdates ? 6.0f : 5.0f;
     float content = row * pageRows + gutter * 3 + captionHeight;
-    if (page == kAppearancePage || page == kLanguagePage) {
+    if (page == kAppearancePage) {
+        // The theme (a title and three rows), then the text and button size.
+        content = row * 4 + gutter + chipBlock + gutter * 2;
+    } else if (page == kLanguagePage) {
         content = chipBlock + gutter * 2;
     } else if (page == kPlayerPage) {
         content = row * 3 + gutter * 2;
@@ -107,8 +112,39 @@ void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
         }
         y += row;
     };
+    // A row with a check box, for choosing one option among a few. Returns whether it was tapped.
+    const auto choiceRow = [&](Text label, bool selected) {
+        const ImVec2 rowMin{min.x, y};
+        const ImVec2 rowMax{max.x, y + row};
+        const float iconX = min.x + gutter * 1.5f + c.dp(theme::kIconSize) * 0.5f;
+        const float textX = min.x + gutter * 3 + c.dp(theme::kIconSize);
+        drawPressed(frame, rowMin, rowMax);
+        c.icon(selected ? Icon::CheckboxOn : Icon::CheckboxOff, {iconX, y + row * 0.5f},
+               theme::kIconSize, theme::kTextPrimary);
+        medium.text({textX, y + (row - c.lineHeight(theme::kBodySize)) * 0.5f}, theme::kBodySize,
+                    theme::kTextPrimary, tr(label));
+        const bool tapped = !screen.feed->scroller.moving() && frame.touch.tapped(rowMin, rowMax);
+        y += row;
+        return tapped;
+    };
 
     if (page == kAppearancePage) {
+        // The theme: follow the phone, or light, or dark.
+        (void)switchRow(frame, tr(Text::ThemeSetting), tr(Text::ThemeSettingDetail), {min.x, y},
+                        width, std::nullopt);
+        y += row;
+        for (int mode = 0; mode < kAppearanceChoices; ++mode) {
+            const bool selected = m_settings.appearance == mode;
+            if (choiceRow(kThemeLabels[static_cast<std::size_t>(mode)], selected) && !selected) {
+                m_settings.appearance = mode;
+                later([this] {
+                    applySettings();
+                    theme::applyMode(m_settings.appearance);
+                });
+            }
+        }
+        y += gutter;
+
         // Text and button size: the setting that decides whether the rest can be read.
         (void)switchRow(frame, tr(Text::InterfaceSize), tr(Text::InterfaceSizeDetail), {min.x, y},
                         width, std::nullopt);
