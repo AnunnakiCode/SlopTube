@@ -217,7 +217,7 @@ void App::drawShortsShelf(Frame& frame, ImVec2 origin, float width, std::size_t 
         const float titleHeight = c.lineHeight(theme::kBodySize) * 2;
         c.with(theme::kTitleWeight)
             .paragraph({x + inset, max.y - inset - titleHeight}, tile - inset * 2, theme::kBodySize,
-                       theme::kTextPrimary, item.title, 2);
+                       IM_COL32_WHITE, item.title, 2);
         // Hit box clamped to the list so tiles scrolled under the bars leave them their taps.
         const ImVec2 clipMin = c.list()->GetClipRectMin();
         const ImVec2 clipMax = c.list()->GetClipRectMax();
