@@ -224,7 +224,7 @@ void App::drawShortsShelf(Frame& frame, ImVec2 origin, float width, std::size_t 
         if (frame.touch.tapped({x, std::max(y, clipMin.y)}, {max.x, std::min(max.y, clipMax.y)})) {
             later([this, index = first + i] { openShort(index); });
         }
-void    }
+     }
 }
 
  App::drawShorts(Frame& frame, ImVec2 min, ImVec2 max) {
