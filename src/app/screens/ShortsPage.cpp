@@ -227,7 +227,7 @@ void App::drawShortsShelf(Frame& frame, ImVec2 origin, float width, std::size_t 
      }
 }
 
- App::drawShorts(Frame& frame, ImVec2 min, ImVec2 max) {
+void App::drawShorts(Frame& frame, ImVec2 min, ImVec2 max) {
     const Canvas& c = frame.canvas;
     const auto& feed = m_tabFeeds[std::to_underlying(Tab::Shorts)];
     c.rect(min, max, IM_COL32_BLACK);
