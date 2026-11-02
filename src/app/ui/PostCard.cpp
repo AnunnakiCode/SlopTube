@@ -157,7 +157,7 @@ void drawChoices(const Canvas& c, const innertube::Post& post, ImVec2 min, float
                           c.dp(kChoiceRadius), c.dp(kBorder));
         c.line({min.x + padding, y + (height - c.lineHeight(theme::kBodySize)) * 0.5f},
                width - padding * 2, theme::kBodySize, theme::kTextPrimary, choice);
-                y += height + c.dp(kChoiceGap);
+        y += height + c.dp(kChoiceGap);
     }
     if (!post.votes.empty()) {
         c.text({min.x, y}, theme::kCaptionSize, theme::kTextSecondary, post.votes);
