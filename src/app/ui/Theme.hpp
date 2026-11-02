@@ -68,6 +68,15 @@ inline ImU32 kLink = kDarkPalette.link;
 inline ImU32 kOutline = kDarkPalette.outline;
 inline ImU32 kDivider = kDarkPalette.divider;
 
+// AGREGA ESTO JUSTO AQUÍ DEBAJO:
+inline const ImU32& Background = kBackground;
+inline const ImU32& Surface = kSurface;
+inline const ImU32& SurfaceRaised = kSurfaceRaised;
+inline const ImU32& TextPrimary = kTextPrimary;
+inline const ImU32& TextSecondary = kTextSecondary;
+inline const ImU32& Divider = kDivider;
+
+
 inline constexpr ImU32 kAccent = IM_COL32(0xff, 0x00, 0x33, 0xff);
 // Measured on the official app (Galaxy A14): the unread count on the bell.
 inline constexpr ImU32 kBadgeRed = IM_COL32(0xe1, 0x00, 0x2d, 0xff);
