@@ -37,6 +37,29 @@ std::size_t utf8Length(unsigned char lead) {
     return 4;
 }
 
+std::string foldFlags(std::string_view text) {
+    std::string out;
+    out.reserve(text.size());
+    for (std::size_t i = 0; i < text.size();) {
+        const auto u = [&](std::size_t idx) { return static_cast<unsigned char>(text[idx]); };
+        if (i + 8 <= text.size() && u(i) == 0xF0 && u(i + 1) == 0x9F && u(i + 2) == 0x87 &&
+            u(i + 3) >= 0xA6 && u(i + 3) <= 0xBF && u(i + 4) == 0xF0 && u(i + 5) == 0x9F &&
+            u(i + 6) == 0x87 && u(i + 7) >= 0xA6 && u(i + 7) <= 0xBF) {
+            const int idx1 = u(i + 3) - 0xA6;
+            const int idx2 = u(i + 7) - 0xA6;
+            const char32_t cp = 0xF0000 + idx1 * 26 + idx2;
+            out.push_back(static_cast<char>(0xF0 | (cp >> 18)));
+            out.push_back(static_cast<char>(0x80 | ((cp >> 12) & 0x3F)));
+            out.push_back(static_cast<char>(0x80 | ((cp >> 6) & 0x3F)));
+            out.push_back(static_cast<char>(0x80 | (cp & 0x3F)));
+            i += 8;
+        } else {
+            out.push_back(text[i++]);
+        }
+    }
+    return out;
+}
+
 } // namespace
 
 Canvas Canvas::with(Weight weight) const {
