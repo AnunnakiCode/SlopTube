@@ -292,6 +292,13 @@ constexpr std::array<Translation, std::to_underlying(Text::Count)> kTranslations
     {Text::SectionNotifications, {"Notifications", "Notifications", "Notificaciones"}},
     {Text::SectionUpdates, {"Updates", "Mises à jour", "Actualizaciones"}},
     {Text::SectionPrivacy, {"Privacy", "Confidentialité", "Privacidad"}},
+    {Text::ThemeSetting, {"Theme", "Thème", "Aspecto"}},
+    {Text::ThemeSettingDetail,
+     {"Choose which theme to use", "Choisissez le thème à utiliser", "Elige qué tema poner"}},
+    {Text::ThemeDevice,
+     {"Use device theme", "Utiliser le thème de l'appareil", "Usar el tema del dispositivo"}},
+    {Text::ThemeLight, {"Light", "Clair", "Claro"}},
+    {Text::ThemeDark, {"Dark", "Sombre", "Oscuro"}},
 }};
 
 // Catch a missing or misordered row at compile time rather than showing the wrong text.
