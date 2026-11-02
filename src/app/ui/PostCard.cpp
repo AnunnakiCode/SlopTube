@@ -29,7 +29,6 @@ constexpr float kActionsHeight = 48; // dp
 constexpr float kActionGap = 8;      // dp between an action icon and its count.
 constexpr float kCounterMargin = 10; // dp, carousel page counter from the image corner.
 constexpr float kCounterPadding = 8; // dp
-const ImU32 kChoiceBorder = theme::kSurfacePressed;
 constexpr std::string_view kSeparator = " • ";
 
 // Vertical positions inside a card, relative to its top.
