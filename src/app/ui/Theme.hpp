@@ -68,7 +68,7 @@ inline ImU32 kLink = kDarkPalette.link;
 inline ImU32 kOutline = kDarkPalette.outline;
 inline ImU32 kDivider = kDarkPalette.divider;
 
-// AGREGA ESTO JUSTO AQUÍ DEBAJO:
+
 inline const ImU32& Background = kBackground;
 inline const ImU32& Surface = kSurface;
 inline const ImU32& SurfaceRaised = kSurfaceRaised;
