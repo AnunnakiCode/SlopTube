@@ -1513,6 +1513,7 @@ void App::drawWatch(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
 }
 
 void App::drawPlayer(Frame& frame, ImVec2 min, ImVec2 max) {
+    const theme::DarkScope darkColours;
     constexpr float kButtonInset = 28; // dp from the player's edges to corner button centres.
     const Canvas& c = frame.canvas;
     ImDrawList* list = c.list();
