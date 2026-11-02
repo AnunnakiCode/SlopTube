@@ -536,7 +536,7 @@ void App::drawShort(Frame& frame, const innertube::Item& item, bool current, ImV
                 std::clamp(static_cast<float>(m_player.positionUs()) / duration, 0.0f, 1.0f);
             c.rect({min.x, max.y - c.dp(kProgressHeight)}, max, theme::kTrack);
             c.rect({min.x, max.y - c.dp(kProgressHeight)}, {min.x + width * fraction, max.y},
-                   theme::kTextPrimary);
+                   theme::kAccent);
         }
         if (state == media::PlayerState::Paused) {
             c.icon(Icon::Play, {(min.x + max.x) * 0.5f, (min.y + max.y) * 0.5f},
