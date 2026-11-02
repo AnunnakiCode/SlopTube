@@ -154,8 +154,7 @@ App::App(android_app* native)
     , m_player(m_http, [looper = native->looper] { ALooper_wake(looper); })
     , m_tasks(kWorkerThreads, [looper = native->looper] { ALooper_wake(looper); }) {
     setLanguage(languageForChoice(m_settings.language, m_platform.locale().language));
-        theme::deviceDark =
-        AConfiguration_getUiModeNight(native->config) == ACONFIGURATION_UI_MODE_NIGHT_YES;
+        theme::deviceDark = AConfiguration_getUiModeNight(native->config) == ACONFIGURATION_UI_MODE_NIGHT_YES;
     for (auto& feed : m_tabFeeds) {
         feed = std::make_shared<Feed>();
     }
@@ -173,7 +172,9 @@ App::App(android_app* native)
     // The interface size (Settings, and Android's text size) sets the density everything uses.
     m_settings = Settings::load(m_platform.dataDirectory() / kSettingsFile);
     setLanguage(languageForChoice(m_settings.language, m_platform.locale().language));
+        
         theme::applyMode(m_settings.appearance);
+        
     applyScale();
     // Glyphs are rasterised on demand at any size, so the fonts follow later scale changes.
     m_fonts = loadFonts(*io.Fonts, theme::kTitleSize * m_density, m_platform.locale().language,
