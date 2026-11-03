@@ -57,7 +57,7 @@ void App::drawNavigationBar(Frame& frame, ImVec2 origin, float width) {
             const float radius = c.dp(kCreateSize) * 0.5f;
             const bool pressed = frame.touch.pressed(slotMin, slotMax);
             c.list()->AddCircleFilled(center, radius,
-                                      pressed ? theme::kSurfacePressed : kCreateFill);
+                                      pressed ? theme::kSurfacePressed : theme::kSurface);
             m_icons->draw(c.list(), Glyph::Create, center, theme::kTextPrimary);
             if (frame.touch.tapped(slotMin, slotMax)) {
                 later([this] { showToast(tr(Text::CreateUnavailable)); });
