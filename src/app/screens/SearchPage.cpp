@@ -223,6 +223,8 @@ void App::drawSearch(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
     ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(0, 0, 0, 0));
+    ImGui::PushStyleColor(ImGuiCol_Text, theme::kTextPrimary);
+    ImGui::PushStyleColor(ImGuiCol_TextDisabled, theme::kTextSecondary);
     if (m_focusSearch) {
         ImGui::SetKeyboardFocusHere();
         m_focusSearch = false;
@@ -230,7 +232,7 @@ void App::drawSearch(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
     const bool submitted = ImGui::InputTextWithHint(
         "##query", tr(Text::SearchHint).data(), m_query.data(), m_query.size(),
         ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll);
-    ImGui::PopStyleColor(3);
+    ImGui::PopStyleColor(5);
     ImGui::PopFont();
 
     const std::string query(m_query.data());
