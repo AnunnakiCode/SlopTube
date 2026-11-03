@@ -547,9 +547,15 @@ bool App::drawCommentInput(Frame& frame, ImVec2 origin, float width, std::string
     ImGui::SetCursorScreenPos({fieldX, centerY - fieldHeight * 0.5f});
     ImGui::SetNextItemWidth(origin.x + width - gutter - send - fieldX);
     ImGui::PushFont(nullptr, c.dp(theme::kBodySize));
+    ImGui::PushStyleColor(ImGuiCol_FrameBg,        theme::kSurface);
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, theme::kSurface);
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive,  theme::kSurface);
+    ImGui::PushStyleColor(ImGuiCol_Text,           theme::kTextPrimary);
+    ImGui::PushStyleColor(ImGuiCol_TextDisabled,   theme::kTextSecondary);
     const std::string hintText(hint);
     bool submitted = ImGui::InputTextWithHint("##comment", hintText.c_str(), m_draft.data(),
                                               m_draft.size(), ImGuiInputTextFlags_EnterReturnsTrue);
+    ImGui::PopStyleColor(5);
     ImGui::PopFont();
     if (hasText && iconButton(frame, Icon::Send, {origin.x + width - gutter - send * 0.5f, centerY},
                               theme::kLink)) {
