@@ -40,7 +40,12 @@ void App::drawNavigationBar(Frame& frame, ImVec2 origin, float width) {
     const Canvas& c = frame.canvas;
     const float height = c.dp(theme::kBottomBarHeight);
     const ImVec2 max{origin.x + width, origin.y + height + m_insets.bottom};
-    c.rect(origin, max, theme::kBackground);
+
+    const bool inShorts = (m_tab == Tab::Shorts);
+    const ImU32 barBg    = inShorts ? IM_COL32(0x0f, 0x0f, 0x0f, 0xff) : theme::kBackground;
+    const ImU32 inkColor = inShorts ? IM_COL32_WHITE : theme::kTextPrimary;
+
+    c.rect(origin, max, barBg);
     c.rect(origin, {max.x, origin.y + c.dp(1)}, theme::kDivider);
 
     const auto accounts = m_session.accounts();
@@ -77,20 +82,19 @@ void App::drawNavigationBar(Frame& frame, ImVec2 origin, float width) {
             if (selected) {
                 c.list()->AddCircle(iconCenter,
                                     c.dp(theme::kIconSize * 0.5f + kRingGap + kAvatarRing * 0.5f),
-                                    theme::kTextPrimary, 0, c.dp(kAvatarRing));
+                                    inkColor, 0, c.dp(kAvatarRing));
             }
         } else {
             m_icons->draw(c.list(), selected ? item.filled : item.outline, iconCenter,
-                          theme::kTextPrimary);
+                          inkColor);
         }
         const std::string_view label = tr(item.label);
         const ImVec2 extent = c.measure(theme::kNavLabelSize, label);
         c.text({centerX - extent.x * 0.5f, origin.y + c.dp(kLabelCenter) - extent.y * 0.5f},
-               theme::kNavLabelSize, theme::kTextPrimary, label);
+               theme::kNavLabelSize, inkColor, label);
         if (frame.touch.tapped(slotMin, slotMax)) {
             later([this, tab = *item.tab] { selectTab(tab); });
         }
     }
 }
-
 } // namespace sloptube::app
