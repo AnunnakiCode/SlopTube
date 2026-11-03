@@ -78,7 +78,7 @@ void drawBadge(Frame& frame, std::string_view text, ImVec2 thumbnailMax) {
                      thumbnailMax.y - c.dp(theme::kBadgeMargin)};
     const ImVec2 min{max.x - extent.x - padding * 2, max.y - extent.y - padding};
     c.rect(min, max, theme::kBadge, theme::kBadgePadding);
-    label.text({min.x + padding, min.y + padding * 0.5f}, theme::kCaptionSize, theme::kTextPrimary,
+    label.text({min.x + padding, min.y + padding * 0.5f}, theme::kCaptionSize, IM_COL32_WHITE,
                text);
 }
 
