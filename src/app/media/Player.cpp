@@ -41,11 +41,11 @@ constexpr std::int64_t kSwitchResyncUs = 2'000'000;
 // Lock-free single-producer/single-consumer queue of interleaved PCM samples.
 class SampleRing {
 public:
-    void reset(std::size_t capacity) {
+        void reset(std::size_t capacity) {
         m_samples.assign(capacity, 0);
         m_read = 0;
         m_write = 0;
-    }
+        }
 
     [[nodiscard]] std::size_t size() const { return m_write.load() - m_read.load(); }
 
