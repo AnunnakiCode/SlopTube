@@ -1200,8 +1200,8 @@ void Player::decodeLoop(Session& session) {
             video.codec.reset(); // Releases the window for the new decoder.
             if (track && startDecoder(video, extractor, *track, window)) {
                 const std::int64_t nowUs = session.clockUs();
-                if (std::abs(nowUs - preparedAtUs) > kSwitchResyncUs) {
-                    AMediaExtractor_seekTo(extractor, nowUs, AMEDIAEXTRACTOR_SEEK_PREVIOUS_SYNC);
+                if (!prepared->live && std::abs(nowUs - preparedAtUs) > kSwitchResyncUs) {
+                AMediaExtractor_seekTo(extractor, nowUs, AMEDIAEXTRACTOR_SEEK_PREVIOUS_SYNC);
                 }
                 videoDiscardUs = nowUs;
                 firstFrameShown = false;
