@@ -57,18 +57,18 @@ void App::drawNavigationBar(Frame& frame, ImVec2 origin, float width) {
         const ImVec2 slotMax{x + slot, origin.y + height};
         const float centerX = x + slot * 0.5f;
 
-        if (!item.tab) {
+                if (!item.tab) {
             const ImVec2 center{centerX, origin.y + height * 0.5f};
             const float radius = c.dp(kCreateSize) * 0.5f;
             const bool pressed = frame.touch.pressed(slotMin, slotMax);
             c.list()->AddCircleFilled(center, radius,
-                                      pressed ? theme::kSurfacePressed : theme::kSurface);
-            m_icons->draw(c.list(), Glyph::Create, center, theme::kTextPrimary);
+                                      inShorts ? kCreateFill : (pressed ? theme::kSurfacePressed : theme::kSurface));
+            m_icons->draw(c.list(), Glyph::Create, center, inkColor);
             if (frame.touch.tapped(slotMin, slotMax)) {
                 later([this] { showToast(tr(Text::CreateUnavailable)); });
             }
             continue;
-        }
+                }
 
         const bool selected = m_tab == *item.tab;
         const ImVec2 iconCenter{centerX, origin.y + c.dp(kIconCenter)};
