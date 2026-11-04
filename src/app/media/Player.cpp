@@ -28,6 +28,9 @@ namespace {
 using namespace std::chrono_literals;
 
 constexpr std::int64_t kMicrosPerSecond = 1'000'000;
+// Live: the video waiting this long for its next segment steps automatic quality down.
+constexpr std::int64_t kStallToStepDownUs = 1'000'000;
+constexpr std::int64_t kStepDownCooldownUs = 20 * kMicrosPerSecond;
 constexpr std::int64_t kRenderAheadUs = 10'000; // Present frames this early to hit vsync.
 constexpr std::int64_t kLateDropUs = 200'000; // Frames later than this are skipped.
 constexpr auto kPausedWait = 15ms;
@@ -41,11 +44,11 @@ constexpr std::int64_t kSwitchResyncUs = 2'000'000;
 // Lock-free single-producer/single-consumer queue of interleaved PCM samples.
 class SampleRing {
 public:
-        void reset(std::size_t capacity) {
+    void reset(std::size_t capacity) {
         m_samples.assign(capacity, 0);
         m_read = 0;
         m_write = 0;
-        }
+    }
 
     [[nodiscard]] std::size_t size() const { return m_write.load() - m_read.load(); }
 
