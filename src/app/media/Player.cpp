@@ -1220,8 +1220,11 @@ void Player::decodeLoop(Session& session) {
                 // Keep the old stream: reopen its decoder where it was.
                 const auto oldTrack = findTrack(main->demuxer(), "video/");
                 if (oldTrack && startDecoder(video, main->demuxer(), *oldTrack, window)) {
-                    AMediaExtractor_seekTo(main->demuxer(), session.clockUs(),
-                                           AMEDIAEXTRACTOR_SEEK_PREVIOUS_SYNC);
+    
+    if (!main->live) {
+        AMediaExtractor_seekTo(main->demuxer(), session.clockUs(),
+                               AMEDIAEXTRACTOR_SEEK_PREVIOUS_SYNC);
+    }
                 }
                 const std::scoped_lock lock(session.switchMutex);
                 session.retired.push_back(std::move(prepared));
