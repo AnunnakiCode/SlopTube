@@ -29,7 +29,8 @@ using namespace std::chrono_literals;
 
 constexpr std::int64_t kMicrosPerSecond = 1'000'000;
 constexpr std::int64_t kRenderAheadUs = 10'000; // Present frames this early to hit vsync.
-constexpr std::int64_t kLateDropUs = 1'500'000; // Frames later than this are skipped (increased to 1.5s for live stability).constexpr auto kPausedWait = 15ms;
+constexpr std::int64_t kLateDropUs = 200'000; // Frames later than this are skipped.
+constexpr auto kPausedWait = 15ms;
 constexpr std::int32_t kReaderMaxImages = 4; // Codec working set plus one held by the UI.
 constexpr double kAudioBufferSeconds = 0.5;
 // The hardware decoders of the target phones top out at 1080p60.
@@ -1327,10 +1328,8 @@ void Player::decodeLoop(Session& session) {
             } else if (session.clockBaseUs >= 0) {
                 const std::int64_t clock = session.clockUs();
                 if (video.pending.presentationUs <= clock + kRenderAheadUs) {
-                    // Test: late frames are shown too, instead of being dropped.
-                    [[maybe_unused]] const bool late =
-                        video.pending.presentationUs < clock - kLateDropUs;
-                    AMediaCodec_releaseOutputBuffer(videoCodec, index, !m_videoHidden);
+                    const bool late = video.pending.presentationUs < clock - kLateDropUs;
+                AMediaCodec_releaseOutputBuffer(videoCodec, index, !m_videoHidden && !late);
                     video.pending.index = -1;
                     progressed = true;
                 } else if (video.pending.presentationUs > clock + 2 * kMicrosPerSecond) {
