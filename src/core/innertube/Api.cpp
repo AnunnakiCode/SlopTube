@@ -369,17 +369,6 @@ Result<Watch> Api::watch(std::string_view videoId) {
     return parser::watch(*root);
 }
 
-// <--- METES EL BLOQUE AQUÍ TÚ MISMO:
-Result<void> Api::reportPlayback(std::string_view videoId) {
-    auto body = openBody();
-    body.field("videoId", videoId);
-    auto root = checked(Endpoint::Next, kMetadataClient, std::move(body));
-    if (!root) {
-        return std::unexpected(root.error());
-    }
-    return {};
-}
-
 Result<CommentPage> Api::comments(std::string_view token) {
     auto body = openBody();
     body.field("continuation", token);
