@@ -48,6 +48,7 @@ public:
     // The videos a mix plays, in order, from the first (see isMix).
     [[nodiscard]] Result<Page> mix(std::string_view playlistId);
     [[nodiscard]] Result<Watch> watch(std::string_view videoId);
+   [[nodiscard]] Result<void> reportPlayback(std::string_view videoId);
     // First page from a Watch comments token, or the next page / replies from a Comment token.
     [[nodiscard]] Result<CommentPage> comments(std::string_view token);
     [[nodiscard]] Result<Channel> channel(std::string_view channelId);
