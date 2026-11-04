@@ -1314,7 +1314,7 @@ void Player::decodeLoop(Session& session) {
                                     formatInt(format.get(), AMEDIAFORMAT_KEY_HEIGHT));
             }
         }
-        if (video.pending.index >= 0) {
+                if (video.pending.index >= 0) {
             const auto index = static_cast<std::size_t>(video.pending.index);
             if (video.pending.presentationUs < videoDiscardUs) {
                 video.drop();
@@ -1323,16 +1323,19 @@ void Player::decodeLoop(Session& session) {
                 AMediaCodec_releaseOutputBuffer(videoCodec, index, !m_videoHidden); // Poster.
                 video.pending.index = -1;
                 firstFrameShown = true;
-                        } else if (session.clockBaseUs >= 0) {
+            } else if (session.clockBaseUs >= 0) {
                 const std::int64_t clock = session.clockUs();
                 if (video.pending.presentationUs <= clock + kRenderAheadUs) {
-                    const bool late = video.pending.presentationUs < clock - kLateDropUs;
-                    AMediaCodec_releaseOutputBuffer(videoCodec, index, !late && !m_videoHidden);
+                    // Test: late frames are shown too, instead of being dropped.
+                    [[maybe_unused]] const bool late =
+                        video.pending.presentationUs < clock - kLateDropUs;
+                    AMediaCodec_releaseOutputBuffer(videoCodec, index, !m_videoHidden);
                     video.pending.index = -1;
                     progressed = true;
                 } else if (video.pending.presentationUs > clock + 2 * kMicrosPerSecond) {
                     // Válvula de seguridad para discontinuidades de timestamps en directos:
-                    // descarta fotogramas excesivamente adelantados para evitar que la tubería de decodificación se bloquee.
+                    // descarta fotogramas excesivamente adelantados para evitar que la
+                    // tubería de decodificación se bloquee.
                     AMediaCodec_releaseOutputBuffer(videoCodec, index, false);
                     video.pending.index = -1;
                     progressed = true;
