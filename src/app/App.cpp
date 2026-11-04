@@ -491,9 +491,6 @@ void App::openMix(const std::string& playlistId) {
 }
 
 Result<innertube::Page> App::fetchWatch(const std::string& videoId) {
-    if (m_session.signedIn()) {
-        m_api.reportPlayback(videoId);
-    }
     auto watch = m_api.watch(videoId);
     if (!watch) {
         return std::unexpected(watch.error());
