@@ -1203,7 +1203,7 @@ void Player::decodeLoop(Session& session) {
                 if (!prepared->live && std::abs(nowUs - preparedAtUs) > kSwitchResyncUs) {
                 AMediaExtractor_seekTo(extractor, nowUs, AMEDIAEXTRACTOR_SEEK_PREVIOUS_SYNC);
                 }
-                videoDiscardUs = nowUs;
+                videoDiscardUs = prepared->live ? 0 : nowUs;
                 firstFrameShown = false;
                 {
                     const std::scoped_lock lock(session.switchMutex);
