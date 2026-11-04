@@ -28,14 +28,9 @@ namespace {
 using namespace std::chrono_literals;
 
 constexpr std::int64_t kMicrosPerSecond = 1'000'000;
-// Live: the video waiting this long for its next segment steps automatic quality down.
-constexpr std::int64_t kStallToStepDownUs = 1'000'000;
-// Live: least time between two automatic quality step-downs.
-constexpr std::int64_t kStepDownCooldownUs = 20 * kMicrosPerSecond;
-// Present frames this early to hit vsync.
-constexpr std::int64_t kRenderAheadUs = 10'000;
-// Frames later than this are skipped.
-constexpr std::int64_t kLateDropUs = 200'000;
+constexpr std::int64_t kRenderAheadUs = 10'000; // Present frames this early to hit vsync.
+constexpr std::int64_t kLateDropUs = 100'000;   // Frames later than this are skipped.
+constexpr auto kIdleWait = 4ms;
 constexpr auto kPausedWait = 15ms;
 constexpr std::int32_t kReaderMaxImages = 4; // Codec working set plus one held by the UI.
 constexpr double kAudioBufferSeconds = 0.5;
@@ -1131,36 +1126,6 @@ void Player::decodeLoop(Session& session) {
         }
         return true;
     };
-    std::int64_t stallStartUs = 0;
-    std::int64_t lastStepDownUs = 0;
-    // Live: the video's next segment is not there yet while the sound plays on. After a while
-    // of that, automatic quality steps down one level.
-    const auto noteVideoStall = [&](bool stalled) {
-        if (!stalled) {
-            stallStartUs = 0;
-            return;
-        }
-        const std::int64_t now = Session::steadyMicros();
-        if (stallStartUs == 0) {
-            stallStartUs = now;
-        }
-        const std::size_t current = session.target;
-        const bool switching = current != session.playing;
-        const bool cooling = now - lastStepDownUs < kStepDownCooldownUs;
-        const bool lowest = current + 1 >= session.streams.qualities.size();
-        const bool waited = now - stallStartUs >= kStallToStepDownUs;
-        if (!waited || m_preferredLines != 0 || switching || cooling || lowest) {
-            return;
-        }
-        lastStepDownUs = now;
-        stallStartUs = now;
-        session.target = current + 1;
-        {
-            const std::scoped_lock lock(session.switchMutex);
-            session.requested = current + 1;
-        }
-        session.switchChanged.notify_all();
-    };
     // Moves one sample of `input` to its decoder. A live input first moves on to its next
     // segment once the current one is used up, and ends only with the broadcast.
     const auto pump = [&](Input& input) {
@@ -1168,15 +1133,10 @@ void Player::decodeLoop(Session& session) {
             if (input.advance(tracks)) {
                 if (&input == audioInput.get()) {
                     session.setLivePosition(input.sequence, input.startUs);
-                } else {
-                    noteVideoStall(false);
                 }
                 return true;
             }
             if (!input.live->ended()) {
-                if (&input == main.get()) {
-                    noteVideoStall(true);
-                }
                 return false; // The next segment is still downloading.
             }
             session.freezeEdge();
@@ -1240,10 +1200,10 @@ void Player::decodeLoop(Session& session) {
             video.codec.reset(); // Releases the window for the new decoder.
             if (track && startDecoder(video, extractor, *track, window)) {
                 const std::int64_t nowUs = session.clockUs();
-                if (!prepared->live && std::abs(nowUs - preparedAtUs) > kSwitchResyncUs) {
+                if (std::abs(nowUs - preparedAtUs) > kSwitchResyncUs) {
                     AMediaExtractor_seekTo(extractor, nowUs, AMEDIAEXTRACTOR_SEEK_PREVIOUS_SYNC);
                 }
-                videoDiscardUs = prepared->live ? 0 : nowUs;
+                videoDiscardUs = nowUs;
                 firstFrameShown = false;
                 {
                     const std::scoped_lock lock(session.switchMutex);
@@ -1260,10 +1220,8 @@ void Player::decodeLoop(Session& session) {
                 // Keep the old stream: reopen its decoder where it was.
                 const auto oldTrack = findTrack(main->demuxer(), "video/");
                 if (oldTrack && startDecoder(video, main->demuxer(), *oldTrack, window)) {
-                    if (!main->live) {
-                        AMediaExtractor_seekTo(main->demuxer(), session.clockUs(),
-                                               AMEDIAEXTRACTOR_SEEK_PREVIOUS_SYNC);
-                    }
+                    AMediaExtractor_seekTo(main->demuxer(), session.clockUs(),
+                                           AMEDIAEXTRACTOR_SEEK_PREVIOUS_SYNC);
                 }
                 const std::scoped_lock lock(session.switchMutex);
                 session.retired.push_back(std::move(prepared));
@@ -1369,14 +1327,7 @@ void Player::decodeLoop(Session& session) {
                 const std::int64_t clock = session.clockUs();
                 if (video.pending.presentationUs <= clock + kRenderAheadUs) {
                     const bool late = video.pending.presentationUs < clock - kLateDropUs;
-                    AMediaCodec_releaseOutputBuffer(videoCodec, index, !m_videoHidden && !late);
-                    video.pending.index = -1;
-                    progressed = true;
-                } else if (video.pending.presentationUs > clock + 2 * kMicrosPerSecond) {
-                    // Válvula de seguridad para discontinuidades de timestamps en directos:
-                    // descarta fotogramas excesivamente adelantados para evitar que la
-                    // tubería de decodificación se bloquee.
-                    AMediaCodec_releaseOutputBuffer(videoCodec, index, false);
+                    AMediaCodec_releaseOutputBuffer(videoCodec, index, !late && !m_videoHidden);
                     video.pending.index = -1;
                     progressed = true;
                 }
