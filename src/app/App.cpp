@@ -735,11 +735,41 @@ void App::beginPlayback(innertube::Player player) {
     m_trackingDurationSeconds = player.details.durationSeconds;
     m_trackingCpn = generateCpn();
     m_lastTrackingAt = 0;
+    m_trackingPending = false;
 
     m_player.open(std::move(player), screenLines());
     if (m_player.qualities().empty()) {
         m_watch.error = tr(Text::PlaybackFailed);
     }
+}
+
+void App::trackPlayback() {
+    if (m_trackingPending ||
+        m_player.state() != media::PlayerState::Playing ||
+        m_playbackTrackingUrl.empty() ||
+        m_trackingCpn.empty() ||
+        !m_session.signedIn()) {
+        return;
+    }
+
+    m_trackingPending = true;
+
+    const std::string playbackUrl = m_playbackTrackingUrl;
+    const std::string watchtimeUrl = m_watchtimeTrackingUrl;
+    const std::string cpn = m_trackingCpn;
+    const std::int64_t duration = m_trackingDurationSeconds;
+    const std::int64_t position =
+        std::max<std::int64_t>(0, m_player.positionUs() / 1'000'000);
+
+    m_tasks.run([this, playbackUrl, watchtimeUrl, cpn, duration, position] {
+    auto result = m_api.trackPlayback(
+        playbackUrl, watchtimeUrl, cpn, duration, position);
+
+    m_tasks.post([this] {
+        m_trackingPending = false;
+    });
+});
+
 }
 
 int App::screenLines() const {
