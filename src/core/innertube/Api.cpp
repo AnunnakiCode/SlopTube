@@ -369,24 +369,6 @@ Result<Watch> Api::watch(std::string_view videoId) {
     return parser::watch(*root);
 }
 
-Result<void> Api::reportPlayback(std::string_view videoId) {
-    // Solo tiene sentido si hay sesión de usuario
-    if (!m_session.signedIn()) {
-        return {};
-    }
-
-    auto body = openBody();
-    body.field("videoId", videoId);
-
-    // Usamos el cliente de metadata (TV) que es el que acepta la cuenta
-    auto root = checked(Endpoint::Next, kMetadataClient, std::move(body));
-    if (!root) {
-        return std::unexpected(root.error());
-    }
-
-    return {};
-}
-
 Result<CommentPage> Api::comments(std::string_view token) {
     auto body = openBody();
     body.field("continuation", token);
