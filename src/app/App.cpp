@@ -958,6 +958,7 @@ bool App::frame() {
     m_tasks.drainMainThread();
     updateAutoplay();
     syncPlayback();
+    trackPlayback();
     // A newer release found at launch is offered once the launch animation is over, on a free
     // screen.
     if (m_update.available && !m_update.offered && m_splash.finished &&
