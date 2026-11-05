@@ -710,6 +710,14 @@ void App::startPlayback(const std::string& videoId) {
 
 void App::beginPlayback(innertube::Player player) {
     m_watch.details = player.details;
+
+    // Save YouTube playback tracking data before moving the player.
+    m_playbackTrackingUrl = std::move(player.playbackTrackingUrl);
+    m_watchtimeTrackingUrl = std::move(player.watchtimeTrackingUrl);
+    m_trackingDurationSeconds = player.details.durationSeconds;
+    m_trackingCpn.clear();
+    m_lastTrackingAt = 0;
+
     m_player.open(std::move(player), screenLines());
     if (m_player.qualities().empty()) {
         m_watch.error = tr(Text::PlaybackFailed);
