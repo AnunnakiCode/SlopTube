@@ -603,6 +603,7 @@ private:
     std::string m_trackingCpn;
     std::int64_t m_trackingDurationSeconds = 0;
     double m_lastTrackingAt = 0;
+    bool m_trackingPending = false;
     float m_density;
     Touch m_touch;
     Insets m_insets;
