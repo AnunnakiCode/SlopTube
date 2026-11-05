@@ -447,7 +447,7 @@ void App::openItem(Item item, VideoSource source) {
 }
 
 void App::openVideo(Item item, VideoSource source, bool recordHistory) {
-        if (recordHistory &&
+    if (recordHistory &&
         (item.kind == ItemKind::Video || item.kind == ItemKind::Short ||
          item.kind == ItemKind::Live)) {
         std::erase_if(m_localHistory, [&](const Item& entry) { return entry.id == item.id; });
@@ -457,7 +457,7 @@ void App::openVideo(Item item, VideoSource source, bool recordHistory) {
         if (m_localHistory.size() > kLocalHistoryLimit) {
             m_localHistory.resize(kLocalHistoryLimit);
         }
-        }
+    }
 
     closeMiniPlayer();
     if (!m_stack.empty() && m_stack.back().route == Route::Watch) {
