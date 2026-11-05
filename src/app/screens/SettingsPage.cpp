@@ -163,24 +163,14 @@ void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
         }
         y += c.dp(theme::kChipHeight) + gutter;
     } else if (page == kLanguagePage) {
-        // Language of the interface: follow the phone, or choose one.
-        (void)switchRow(frame, tr(Text::LanguageSetting), tr(Text::LanguageSettingDetail),
-                        {min.x, y}, width, std::nullopt);
-        y += row;
-        for (int choice = 0; choice < kLanguageChoices; ++choice) {
-            const bool selected = m_settings.language == choice;
-            if (chipButton(frame, tr(kLanguageLabels[static_cast<std::size_t>(choice)]), {x, y},
-                           selected, x) &&
-                !selected && !screen.feed->scroller.moving()) {
-                m_settings.language = choice;
-                later([this] {
-                    applySettings();
-                    setLanguage(
-                        languageForChoice(m_settings.language, m_platform.locale().language));
-                });
-            }
+        // Open the language picker without changing the current language.
+        if (switchRow(frame, tr(Text::LanguageSetting), tr(Text::LanguageSettingDetail),
+                      {min.x, y}, width, std::nullopt) &&
+            !screen.feed->scroller.moving()) {
+            m_languagePending = m_settings.language;
+            m_languageDialogOpen = true;
         }
-        y += c.dp(theme::kChipHeight) + gutter;
+        y += row;
     } else if (page == kPlayerPage) {
         for (std::size_t i = 0; i < 3; ++i) {
             toggleRow(kToggles[i]);
