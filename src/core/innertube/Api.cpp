@@ -751,6 +751,69 @@ Result<Player> Api::player(std::string_view videoId) {
     return fail("player: " + failures);
 }
 
+Result<void> Api::trackPlayback(
+    const Player& player,
+    std::string_view cpn,
+    std::int64_t positionSeconds) {
+
+    if (player.playbackTrackingUrl.empty() || cpn.empty()) {
+        return fail("playback tracking: missing URL or CPN");
+    }
+
+    const auto sendTracking = [&](const std::string& baseUrl,
+                                  const std::string& parameters) -> Result<void> {
+        if (baseUrl.empty()) {
+            return {};
+        }
+
+        std::string url = baseUrl;
+        url += url.find('?') == std::string::npos ? '?' : '&';
+        url += parameters;
+
+        auto response = m_http.send({
+            .method = http::Method::Get,
+            .url = std::move(url),
+            .retryOnStall = false,
+        });
+
+        if (!response) {
+            return std::unexpected(response.error());
+        }
+
+        if (!response->ok()) {
+            return fail("playback tracking: HTTP " +
+                        std::to_string(response->status));
+        }
+
+        return {};
+    };
+
+    const std::string common =
+        "cpn=" + std::string(cpn) +
+        "&ver=2&el=detailpage&len=" +
+        std::to_string(player.details.durationSeconds);
+
+    auto playback = sendTracking(
+        player.playbackTrackingUrl,
+        common + "&cmt=" + std::to_string(positionSeconds));
+
+    if (!playback) {
+        return std::unexpected(playback.error());
+    }
+
+    if (!player.watchtimeTrackingUrl.empty()) {
+        auto watchtime = sendTracking(
+            player.watchtimeTrackingUrl,
+            common + "&st=0&et=" + std::to_string(positionSeconds));
+
+        if (!watchtime) {
+            return std::unexpected(watchtime.error());
+        }
+    }
+
+    return {};
+}
+
 Result<Captions> Api::captions(std::string_view videoId) {
     auto body = openBody();
     body.field("videoId", videoId).field("contentCheckOk", true).field("racyCheckOk", true);
