@@ -68,9 +68,10 @@ public:
     // Next page of `page`; requires a non-empty `page.continuation`.
     [[nodiscard]] Result<Page> continuation(const Page& page);
     [[nodiscard]] Result<Player> player(std::string_view videoId);
+    // Sends playback tracking to YouTube.
+    [[nodiscard]] Result<void> trackPlayback(const Player& player,std::string_view cpn,std::int64_t positionSeconds);
     // Subtitle tracks of a video, and the languages they can be translated into.
     [[nodiscard]] Result<Captions> captions(std::string_view videoId);
-
     // Community posts are read anonymously through MWEB: the TV client has none, and posts need
     // no account.
     [[nodiscard]] Result<PostPage> channelPosts(std::string_view channelId);
