@@ -1042,14 +1042,24 @@ void App::drawInterface(Frame& frame, ImVec2 min, ImVec2 max, ImVec2 display) {
     // Modal sheets are drawn first on a top layer so they get input before the screen beneath,
     // which only sees touches that started outside them.
     ImDrawList* list = frame.canvas.list();
-    const bool modal = m_sheet.modal();
-    if (modal) {
-        list->ChannelsSplit(2);
-        list->ChannelsSetCurrent(1);
+    const bool languageModal = m_languageDialogOpen || m_languageConfirmOpen;
+const bool modal = m_sheet.modal() || languageModal;
+
+if (modal) {
+    list->ChannelsSplit(2);
+    list->ChannelsSetCurrent(1);
+
+    if (m_sheet.modal()) {
         drawSheet(frame, {min.x, max.y - modalSheetHeight(frame.canvas, max.y - min.y)}, max);
-        list->ChannelsSetCurrent(0);
-        m_touch.setBlocked(true);
     }
+
+    if (languageModal) {
+        drawLanguageDialog(frame, min, max);
+    }
+
+    list->ChannelsSetCurrent(0);
+    m_touch.setBlocked(true);
+}
     // The mini player floats over everything else and claims the gestures that start on it,
     // including once the window has moved away from where the drag started.
     if (m_mini.watch && (m_mini.dragging || m_touch.startedIn(m_mini.min, m_mini.max))) {
