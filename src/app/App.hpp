@@ -360,6 +360,7 @@ private:
     // Settings (SettingsPage.cpp).
     void openSettings();
     void drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max);
+    void drawLanguageDialog(Frame& frame, ImVec2 min, ImVec2 max);
     void applySettings();
     // Sizes everything for Settings::interfaceSize and Android's text size.
     void applyScale();
