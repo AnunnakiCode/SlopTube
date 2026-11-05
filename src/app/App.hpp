@@ -605,6 +605,7 @@ void trackPlayback();
     std::int64_t m_trackingDurationSeconds = 0;
     double m_lastTrackingAt = 0;
     bool m_trackingPending = false;
+    bool m_trackingSent = false;
     float m_density;
     Touch m_touch;
     Insets m_insets;
