@@ -593,6 +593,7 @@ private:
     void onPostAction(PostAction action, const innertube::Post& post);
     void drawPost(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max);
 
+void trackPlayback(); 
     Platform m_platform;
     Display m_display;
     http::Client m_http;
