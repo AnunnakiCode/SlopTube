@@ -262,6 +262,15 @@ void App::onWindowCreated(ANativeWindow* window) {
     m_display.attach(window);
     ImGui_ImplAndroid_Init(window);
     onInsetsChanged();
+
+    // Refresh YouTube watch history when returning to the app.
+    if (m_session.signedIn() && !m_historyShelf->loading) {
+        m_historyShelf->page = {};
+        m_historyShelf->loaded = false;
+        load(m_historyShelf, [this] {
+            return m_api.feed(innertube::Feed::History);
+        });
+    }
 }
 
 void App::onWindowDestroyed() {
