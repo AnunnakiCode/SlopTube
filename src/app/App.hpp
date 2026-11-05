@@ -616,8 +616,6 @@ private:
     std::array<char, 256> m_query{};
     bool m_focusSearch = false;
     std::vector<std::string> m_searchHistory; // Newest first.
-    // Videos vistos durante esta sesión, más recientes primero.
-    std::vector<innertube::Item> m_localHistory;
     std::vector<std::string> m_suggestions;
     std::string m_suggestedFor;   // Query the suggestions shown complete.
     std::string m_suggestPending; // Query being completed by a request in flight.
