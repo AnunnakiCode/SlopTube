@@ -598,6 +598,11 @@ private:
     http::Client m_http;
     auth::Session m_session;
     innertube::Api m_api;
+    std::string m_playbackTrackingUrl;
+    std::string m_watchtimeTrackingUrl;
+    std::string m_trackingCpn;
+    std::int64_t m_trackingDurationSeconds = 0;
+    double m_lastTrackingAt = 0;
     float m_density;
     Touch m_touch;
     Insets m_insets;
