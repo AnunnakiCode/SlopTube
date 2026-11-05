@@ -21,6 +21,7 @@
 #include <filesystem>
 #include <format>
 #include <ranges>
+#include <random>
 #include <thread>
 #include <tuple>
 
@@ -59,6 +60,23 @@ constexpr float kSeekingChapterGap = 3; // dp
 constexpr std::string_view kChapterSeparator = " • ";
 // Speeds of the player menu, as the official app offers them.
 constexpr std::array<float, 8> kSpeeds{0.25f, 0.5f, 0.75f, 1, 1.25f, 1.5f, 1.75f, 2};
+
+std::string generateCpn() {
+    constexpr std::string_view chars =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+
+    std::random_device random;
+    std::uniform_int_distribution<int> distribution(0, 63);
+
+    std::string cpn;
+    cpn.reserve(16);
+
+    for (int i = 0; i < 16; ++i) {
+        cpn += chars[distribution(random)];
+    }
+
+    return cpn;
+}
 
 // "Normal" for 1, else "1.5x" (the official app's wording).
 std::string speedLabel(float speed) {
@@ -715,7 +733,7 @@ void App::beginPlayback(innertube::Player player) {
     m_playbackTrackingUrl = std::move(player.playbackTrackingUrl);
     m_watchtimeTrackingUrl = std::move(player.watchtimeTrackingUrl);
     m_trackingDurationSeconds = player.details.durationSeconds;
-    m_trackingCpn.clear();
+    m_trackingCpn = generateCpn();
     m_lastTrackingAt = 0;
 
     m_player.open(std::move(player), screenLines());
