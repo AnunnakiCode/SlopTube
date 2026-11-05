@@ -9,6 +9,7 @@
 #include <array>
 #include <cctype>
 #include <utility>
+#include <random>
 
 namespace sloptube::innertube {
 namespace {
@@ -731,23 +732,48 @@ Result<Page> Api::continuation(const Page& page) {
 }
 
 Result<Player> Api::player(std::string_view videoId) {
+    constexpr std::string_view chars =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+
+    std::random_device random;
+    std::uniform_int_distribution<int> distribution(0, 63);
+
+    std::string cpn;
+    cpn.reserve(16);
+
+    for (int i = 0; i < 16; ++i) {
+        cpn += chars[distribution(random)];
+    }
+
     std::string failures;
+
     for (const auto client : playerFallbackOrder()) {
         auto body = openBody();
-        body.field("videoId", videoId).field("contentCheckOk", true).field("racyCheckOk", true);
+
+        body.field("videoId", videoId)
+            .field("cpn", cpn)
+            .field("contentCheckOk", true)
+            .field("racyCheckOk", true);
+
         auto root = post(Endpoint::Player, client, std::move(body));
+
         if (!root) {
             return std::unexpected(root.error());
         }
+
         auto parsed = parser::player(*root);
+
         if (parsed) {
+            parsed->cpn = cpn;
             return parsed;
         }
+
         failures += clientProfile(client).name;
         failures += ": ";
         failures += parsed.error().message;
         failures += "; ";
     }
+
     return fail("player: " + failures);
 }
 
