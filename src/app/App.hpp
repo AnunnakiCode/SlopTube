@@ -670,6 +670,12 @@ void trackPlayback();
 
     Settings m_settings;
 
+    // Language picker: selection is applied only after confirmation.
+    bool m_languageDialogOpen = false;
+    bool m_languageConfirmOpen = false;
+    int m_languagePending = 0;
+    Scroller m_languageScroller;
+
     struct UpdateState {
         std::optional<Release> available;
         bool checking = false;
