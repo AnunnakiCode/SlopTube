@@ -752,21 +752,23 @@ Result<Player> Api::player(std::string_view videoId) {
 }
 
 Result<void> Api::trackPlayback(
-    const Player& player,
+    std::string_view playbackTrackingUrl,
+    std::string_view watchtimeTrackingUrl,
     std::string_view cpn,
+    std::int64_t durationSeconds,
     std::int64_t positionSeconds) {
 
-    if (player.playbackTrackingUrl.empty() || cpn.empty()) {
+    if (playbackTrackingUrl.empty() || cpn.empty()) {
         return fail("playback tracking: missing URL or CPN");
     }
 
-    const auto sendTracking = [&](const std::string& baseUrl,
+    const auto sendTracking = [&](std::string_view baseUrl,
                                   const std::string& parameters) -> Result<void> {
         if (baseUrl.empty()) {
             return {};
         }
 
-        std::string url = baseUrl;
+        std::string url(baseUrl);
         url += url.find('?') == std::string::npos ? '?' : '&';
         url += parameters;
 
@@ -791,19 +793,19 @@ Result<void> Api::trackPlayback(
     const std::string common =
         "cpn=" + std::string(cpn) +
         "&ver=2&el=detailpage&len=" +
-        std::to_string(player.details.durationSeconds);
+        std::to_string(durationSeconds);
 
     auto playback = sendTracking(
-        player.playbackTrackingUrl,
+        playbackTrackingUrl,
         common + "&cmt=" + std::to_string(positionSeconds));
 
     if (!playback) {
         return std::unexpected(playback.error());
     }
 
-    if (!player.watchtimeTrackingUrl.empty()) {
+    if (!watchtimeTrackingUrl.empty()) {
         auto watchtime = sendTracking(
-            player.watchtimeTrackingUrl,
+            watchtimeTrackingUrl,
             common + "&st=0&et=" + std::to_string(positionSeconds));
 
         if (!watchtime) {
