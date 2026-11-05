@@ -356,11 +356,20 @@ std::int32_t App::onInput(const AInputEvent* event) {
 // --- Navigation ---------------------------------------------------------------------------------
 
 bool App::canGoBack() const {
-    return m_fullscreen || m_watch.menu != PlayerMenu::None || m_sheet.kind != Sheet::None ||
+    return m_languageDialogOpen || m_languageConfirmOpen ||
+           m_fullscreen || m_watch.menu != PlayerMenu::None || m_sheet.kind != Sheet::None ||
            !m_stack.empty() || m_tab != Tab::Home || m_mini.watch.has_value();
 }
 
 void App::goBack() {
+        if (m_languageConfirmOpen) {
+        m_languageConfirmOpen = false;
+        return;
+    }
+    if (m_languageDialogOpen) {
+        m_languageDialogOpen = false;
+        return;
+    }
     if (m_watch.menu != PlayerMenu::None) {
         switch (m_watch.menu) {
         case PlayerMenu::Translations:
