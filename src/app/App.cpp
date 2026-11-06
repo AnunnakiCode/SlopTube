@@ -357,6 +357,7 @@ std::int32_t App::onInput(const AInputEvent* event) {
 
 bool App::canGoBack() const {
     return m_languageDialogOpen || m_languageConfirmOpen ||
+           m_appearanceDialogOpen || m_appearanceConfirmOpen ||
            m_fullscreen || m_watch.menu != PlayerMenu::None || m_sheet.kind != Sheet::None ||
            !m_stack.empty() || m_tab != Tab::Home || m_mini.watch.has_value();
 }
@@ -366,6 +367,16 @@ void App::goBack() {
         m_languageConfirmOpen = false;
         return;
     }
+
+    if (m_appearanceConfirmOpen) {
+    m_appearanceConfirmOpen = false;
+    return;
+  }
+   if (m_appearanceDialogOpen) {
+    m_appearanceDialogOpen = false;
+    return;
+ }
+    
     if (m_languageDialogOpen) {
         m_languageDialogOpen = false;
         return;
