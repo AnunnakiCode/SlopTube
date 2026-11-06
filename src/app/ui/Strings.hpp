@@ -195,6 +195,11 @@ enum class Text : std::uint8_t {
     ThemeDevice,
     ThemeLight,
     ThemeDark,
+    ThemeDialogTitle,
+    ThemeAll,
+    ThemeChangeTitle,
+    ThemeChangeMessage,
+    ThemeChange,
     Count,
 };
 
