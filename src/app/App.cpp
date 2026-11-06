@@ -1052,7 +1052,8 @@ void App::drawInterface(Frame& frame, ImVec2 min, ImVec2 max, ImVec2 display) {
     // which only sees touches that started outside them.
     ImDrawList* list = frame.canvas.list();
     const bool languageModal = m_languageDialogOpen || m_languageConfirmOpen;
-const bool modal = m_sheet.modal() || languageModal;
+const bool appearanceModal = m_appearanceDialogOpen || m_appearanceConfirmOpen;
+const bool modal = m_sheet.modal() || languageModal || appearanceModal;
 
 if (modal) {
     list->ChannelsSplit(2);
@@ -1062,8 +1063,12 @@ if (modal) {
         drawSheet(frame, {min.x, max.y - modalSheetHeight(frame.canvas, max.y - min.y)}, max);
     }
 
-    if (languageModal) {
+        if (languageModal) {
         drawLanguageDialog(frame, min, max);
+    }
+
+    if (appearanceModal) {
+        drawAppearanceDialog(frame, min, max);
     }
 
     list->ChannelsSetCurrent(0);
