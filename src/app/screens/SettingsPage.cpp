@@ -128,22 +128,14 @@ void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
     };
 
     if (page == kAppearancePage) {
-        // The theme: follow the phone, or light, or dark.
-        (void)switchRow(frame, tr(Text::ThemeSetting), tr(Text::ThemeSettingDetail), {min.x, y},
-                        width, std::nullopt);
-        y += row;
-        for (int mode = 0; mode < kAppearanceChoices; ++mode) {
-            const bool selected = m_settings.appearance == mode;
-            if (choiceRow(kThemeLabels[static_cast<std::size_t>(mode)], selected) && !selected) {
-                m_settings.appearance = mode;
-                later([this] {
-                    applySettings();
-                    theme::applyMode(m_settings.appearance);
-                });
-            }
-        }
-        y += gutter;
-
+    if (switchRow(frame, tr(Text::ThemeSetting), tr(Text::ThemeSettingDetail),
+                  {min.x, y}, width, std::nullopt) &&
+        !screen.feed->scroller.moving()) {
+        m_appearancePending = m_settings.appearance;
+        m_appearanceDialogOpen = true;
+    }
+    y += row;
+    y += gutter;
         // Text and button size: the setting that decides whether the rest can be read.
         (void)switchRow(frame, tr(Text::InterfaceSize), tr(Text::InterfaceSizeDetail), {min.x, y},
                         width, std::nullopt);
