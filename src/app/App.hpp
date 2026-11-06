@@ -361,6 +361,7 @@ private:
     void openSettings();
     void drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max);
     void drawLanguageDialog(Frame& frame, ImVec2 min, ImVec2 max);
+    void drawAppearanceDialog(Frame& frame, ImVec2 min, ImVec2 max);
     void applySettings();
     // Sizes everything for Settings::interfaceSize and Android's text size.
     void applyScale();
@@ -676,6 +677,12 @@ void trackPlayback();
     bool m_languageConfirmOpen = false;
     int m_languagePending = 0;
     Scroller m_languageScroller;
+
+    // Appearance picker: selection is applied only after confirmation.
+    bool m_appearanceDialogOpen = false;
+    bool m_appearanceConfirmOpen = false;
+    int m_appearancePending = 0;
+    Scroller m_appearanceScroller;
 
     struct UpdateState {
         std::optional<Release> available;
