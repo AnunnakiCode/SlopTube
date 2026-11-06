@@ -753,7 +753,7 @@ void App::beginPlayback(innertube::Player player) {
     m_playbackTrackingUrl = std::move(player.playbackTrackingUrl);
     m_watchtimeTrackingUrl = std::move(player.watchtimeTrackingUrl);
     m_trackingDurationSeconds = player.details.durationSeconds;
-    m_trackingCpn = generateCpn();
+    m_trackingCpn = std::move(player.cpn);
     m_lastTrackingAt = 0;
     m_trackingPending = false;
     m_trackingSent = false;
