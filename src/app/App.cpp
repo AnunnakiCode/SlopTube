@@ -766,7 +766,6 @@ void App::beginPlayback(innertube::Player player) {
 
 void App::trackPlayback() {
     if (m_trackingPending ||
-        m_trackingSent ||
         m_player.state() != media::PlayerState::Playing ||
         m_playbackTrackingUrl.empty() ||
         m_trackingCpn.empty() ||
@@ -774,6 +773,12 @@ void App::trackPlayback() {
         return;
     }
 
+    const double currentTime = now();
+    if (m_lastTrackingAt > 0 && currentTime - m_lastTrackingAt < 15.0) {
+        return;
+    }
+
+    m_lastTrackingAt = currentTime;
     m_trackingPending = true;
 
     const std::string playbackUrl = m_playbackTrackingUrl;
@@ -784,7 +789,7 @@ void App::trackPlayback() {
         std::max<std::int64_t>(0, m_player.positionUs() / 1'000'000);
 
     m_tasks.run([this, playbackUrl, watchtimeUrl, cpn, duration, position] {
-            auto result = m_api.trackPlayback(
+        auto result = m_api.trackPlayback(
             playbackUrl, watchtimeUrl, cpn, duration, position);
 
         m_tasks.post([this, success = static_cast<bool>(result)] {
