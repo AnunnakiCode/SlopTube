@@ -192,8 +192,17 @@ void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
         if (build::kChecksForUpdates) {
             pageRow(Text::SectionUpdates, kUpdatesPage);
         }
-        pageRow(Text::SectionPrivacy, kPrivacyPage);
+                pageRow(Text::SectionPrivacy, kPrivacyPage);
         y += gutter * 2;
+
+        if (switchRow(frame,
+                      "Conectar cuenta de YouTube",
+                      "Inicia sesión para conectar tu cuenta",
+                      {min.x, y}, width, std::nullopt) &&
+            !screen.feed->scroller.moving()) {
+            m_platform.openYouTubeLogin();
+        }
+        y += row;
 
         const std::string version =
             std::string(build::kAppName) + ' ' + std::string(build::kVersion);
