@@ -1,1 +1,143 @@
 
+// Generated from android/java/YouTubeLoginActivity.java.in
+package @SLOPTUBE_APP_ID@;
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.webkit.CookieManager;
+import android.webkit.WebChromeClient;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
+import android.widget.TextView;
+import android.view.Gravity;
+import android.view.ViewGroup;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public final class YouTubeLoginActivity extends Activity {
+
+    private WebView webView;
+    private TextView status;
+
+    @Override
+    protected void onCreate(Bundle state) {
+        super.onCreate(state);
+
+        FrameLayout root = new FrameLayout(this);
+
+        webView = new WebView(this);
+        status = new TextView(this);
+        status.setText("Inicia sesión en tu cuenta de Google");
+        status.setGravity(Gravity.CENTER);
+        status.setPadding(16, 12, 16, 12);
+
+        FrameLayout.LayoutParams statusParams = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                Gravity.TOP
+        );
+
+        FrameLayout.LayoutParams webParams = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+        );
+        webParams.topMargin = 56;
+
+        root.addView(webView, webParams);
+        root.addView(status, statusParams);
+        setContentView(root);
+
+        CookieManager cookies = CookieManager.getInstance();
+        cookies.setAcceptCookie(true);
+        cookies.setAcceptThirdPartyCookies(webView, true);
+
+        webView.getSettings().setJavaScriptEnabled(true);
+        webView.getSettings().setDomStorageEnabled(true);
+        webView.setWebChromeClient(new WebChromeClient());
+
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                checkYouTubeSession();
+            }
+        });
+
+        webView.loadUrl("https://www.youtube.com/");
+    }
+
+    private void checkYouTubeSession() {
+        CookieManager manager = CookieManager.getInstance();
+
+        String youtubeCookies =
+                manager.getCookie("https://www.youtube.com");
+        String musicCookies =
+                manager.getCookie("https://music.youtube.com");
+
+        Map<String, String> values = new HashMap<>();
+        readCookies(values, youtubeCookies);
+        readCookies(values, musicCookies);
+
+        boolean hasSid = values.containsKey("SID");
+        boolean hasSap = values.containsKey("SAPISID")
+                || values.containsKey("__Secure-3PAPISID");
+
+        if (hasSid && hasSap) {
+            manager.flush();
+
+            StringBuilder result = new StringBuilder();
+            for (Map.Entry<String, String> entry : values.entrySet()) {
+                if (result.length() > 0) {
+                    result.append("; ");
+                }
+                result.append(entry.getKey())
+                      .append("=")
+                      .append(entry.getValue());
+            }
+
+            status.setText("Sesión de YouTube detectada");
+            getIntent().putExtra("youtube_cookies", result.toString());
+            setResult(RESULT_OK, getIntent());
+        } else {
+            status.setText("Inicia sesión para conectar tu cuenta de YouTube");
+        }
+    }
+
+    private static void readCookies(
+            Map<String, String> destination,
+            String cookieString
+    ) {
+        if (cookieString == null || cookieString.isEmpty()) {
+            return;
+        }
+
+        for (String item : cookieString.split(";")) {
+            String[] pair = item.trim().split("=", 2);
+            if (pair.length == 2) {
+                destination.put(pair[0], pair[1]);
+            }
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (webView != null && webView.canGoBack()) {
+            webView.goBack();
+        } else {
+            setResult(RESULT_CANCELED);
+            super.onBackPressed();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (webView != null) {
+            webView.stopLoading();
+            webView.destroy();
+            webView = null;
+        }
+        super.onDestroy();
+    }
+}
