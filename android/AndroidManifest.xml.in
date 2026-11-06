@@ -22,33 +22,40 @@
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <application
-        android:label="@SLOPTUBE_APP_NAME@"
-        android:icon="@mipmap/ic_launcher"
-        android:hasCode="true"
-        android:extractNativeLibs="false"
-        android:allowBackup="false"
-        android:theme="@style/SlopTube">
-        <activity
-            android:name=".SlopTubeActivity"
-            android:exported="true"
-            android:supportsPictureInPicture="true"
-            android:resizeableActivity="true"
-            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|keyboard|density|uiMode"
-            android:windowSoftInputMode="adjustNothing"
-            android:launchMode="singleTask">
-            <meta-data android:name="android.app.lib_name" android:value="@SLOPTUBE_LIB_NAME@" />
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <service
-            android:name=".PlaybackService"
-            android:exported="false"
-            android:foregroundServiceType="mediaPlayback" />
-        <service
-            android:name=".UploadsJob"
-            android:exported="false"
-            android:permission="android.permission.BIND_JOB_SERVICE" />
-    </application>
+    android:label="@SLOPTUBE_APP_NAME@"
+    android:icon="@mipmap/ic_launcher"
+    android:hasCode="true"
+    android:extractNativeLibs="false"
+    android:allowBackup="false"
+    android:theme="@style/SlopTube">
+
+    <activity
+        android:name=".YouTubeLoginActivity"
+        android:exported="false" />
+
+    <activity
+        android:name=".SlopTubeActivity"
+        android:exported="true"
+        android:supportsPictureInPicture="true"
+        android:resizeableActivity="true"
+        android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|keyboard|density|uiMode"
+        android:windowSoftInputMode="adjustNothing"
+        android:launchMode="singleTask">
+        <meta-data android:name="android.app.lib_name" android:value="@SLOPTUBE_LIB_NAME@" />
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+    </activity>
+
+    <service
+        android:name=".PlaybackService"
+        android:exported="false"
+        android:foregroundServiceType="mediaPlayback" />
+
+    <service
+        android:name=".UploadsJob"
+        android:exported="false"
+        android:permission="android.permission.BIND_JOB_SERVICE" />
+</application>
 </manifest>
