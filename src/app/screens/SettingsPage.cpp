@@ -65,7 +65,7 @@ void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
     const float captionHeight = c.lineHeight(theme::kCaptionSize);
     const float chipBlock = row + c.dp(theme::kChipHeight) + gutter;
     // The main list has one row for each page; updates only exist in release builds.
-    const float pageRows = build::kChecksForUpdates ? 6.0f : 5.0f;
+    const float pageRows = build::kChecksForUpdates ? 7.0f : 6.0f;
     float content = row * pageRows + gutter * 3 + captionHeight;
     if (page == kAppearancePage) {
     // The theme row, then the text and button size.
