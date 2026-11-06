@@ -2208,6 +2208,156 @@ std::optional<std::size_t> App::drawMenu(Frame& frame, ImVec2 min, ImVec2 max,
     return tapped;
 }
 
+void App::drawLanguageDialog(Frame& frame, ImVec2 min, ImVec2 max) {
+    constexpr float kWidth = 320;
+    constexpr float kRowHeight = 48;
+    constexpr float kPadding = 20;
+    constexpr float kButtonHeight = 42;
+
+    const Canvas& c = frame.canvas;
+    ImDrawList* list = c.list();
+
+    // Darken the screen behind the dialog.
+    list->AddRectFilled(min, max, theme::kScrim);
+
+    const float gutter = c.dp(theme::kGutter);
+    const float width = std::min(c.dp(kWidth), max.x - min.x - gutter * 2);
+
+    if (m_languageConfirmOpen) {
+        const float height = c.dp(230);
+        const ImVec2 panelMin{(min.x + max.x - width) * 0.5f,
+                              (min.y + max.y - height) * 0.5f};
+        const ImVec2 panelMax{panelMin.x + width, panelMin.y + height};
+
+        c.rect(panelMin, panelMax, theme::kSurfaceRaised, theme::kCornerRadius);
+
+        const float pad = c.dp(kPadding);
+        float y = panelMin.y + pad;
+
+        c.text({panelMin.x + pad, y}, theme::kTitleSize,
+               theme::kTextPrimary, tr(Text::LanguageChangeTitle));
+        y += c.dp(42);
+
+        std::string_view selected = tr(Text::LanguagePhone);
+        switch (m_languagePending) {
+        case 1: selected = tr(Text::LanguageEnglish); break;
+        case 2: selected = tr(Text::LanguageFrench); break;
+        case 3: selected = tr(Text::LanguageSpanish); break;
+        }
+
+        c.text({panelMin.x + pad, y}, theme::kBodySize,
+               theme::kTextPrimary, selected);
+        y += c.dp(28);
+
+        c.paragraph({panelMin.x + pad, y}, width - pad * 2,
+                    theme::kCaptionSize, theme::kTextSecondary,
+                    tr(Text::LanguageChangeMessage), 2);
+
+        const float buttonY = panelMax.y - c.dp(58);
+        const float buttonWidth = (width - pad * 2 - c.dp(12)) * 0.5f;
+        const ImVec2 cancelMin{panelMin.x + pad, buttonY};
+        const ImVec2 cancelMax{cancelMin.x + buttonWidth, buttonY + c.dp(kButtonHeight)};
+        const ImVec2 changeMin{cancelMax.x + c.dp(12), buttonY};
+        const ImVec2 changeMax{changeMin.x + buttonWidth, buttonY + c.dp(kButtonHeight)};
+
+        if (pillButton(frame, tr(Text::Cancel), cancelMin, cancelMax, false)) {
+            m_languageConfirmOpen = false;
+            m_languageDialogOpen = true;
+        }
+
+        if (pillButton(frame, tr(Text::LanguageChange), changeMin, changeMax, true)) {
+            m_settings.language = m_languagePending;
+            setLanguage(languageForChoice(m_settings.language, m_platform.locale().language));
+            applySettings();
+            m_languageConfirmOpen = false;
+        }
+        return;
+    }
+
+    const float rowHeight = c.dp(kRowHeight);
+    const float height = std::min(c.dp(390), max.y - min.y - gutter * 2);
+    const ImVec2 panelMin{(min.x + max.x - width) * 0.5f,
+                          (min.y + max.y - height) * 0.5f};
+    const ImVec2 panelMax{panelMin.x + width, panelMin.y + height};
+
+    c.rect(panelMin, panelMax, theme::kSurfaceRaised, theme::kCornerRadius);
+
+    const float pad = c.dp(kPadding);
+    float titleY = panelMin.y + pad;
+
+    c.text({panelMin.x + pad, titleY}, theme::kTitleSize,
+           theme::kTextPrimary, tr(Text::LanguageDialogTitle));
+
+    titleY += c.dp(38);
+    c.text({panelMin.x + pad, titleY}, theme::kCaptionSize,
+           theme::kTextSecondary, tr(Text::LanguageAll));
+
+    const ImVec2 listMin{panelMin.x, titleY + c.dp(28)};
+    const float footerHeight = c.dp(64);
+    const ImVec2 listMax{panelMax.x, panelMax.y - footerHeight};
+    constexpr int kChoices = 4;
+    const float contentHeight = rowHeight * kChoices;
+
+    m_languageScroller.update(m_touch, listMin, listMax, contentHeight,
+                              frame.seconds, c.dp(1));
+    frame.animating |= m_languageScroller.moving();
+
+    list->PushClipRect(listMin, listMax, true);
+
+    for (int i = 0; i < kChoices; ++i) {
+        const float top = listMin.y + rowHeight * static_cast<float>(i)
+                          - m_languageScroller.offset();
+        if (top + rowHeight < listMin.y || top > listMax.y) {
+            continue;
+        }
+
+        const ImVec2 rowMin{panelMin.x, std::max(top, listMin.y)};
+        const ImVec2 rowMax{panelMax.x, std::min(top + rowHeight, listMax.y)};
+
+        std::string_view label;
+        switch (i) {
+        case 0: label = tr(Text::LanguagePhone); break;
+        case 1: label = tr(Text::LanguageEnglish); break;
+        case 2: label = tr(Text::LanguageFrench); break;
+        default: label = tr(Text::LanguageSpanish); break;
+        }
+
+        drawPressed(frame, rowMin, rowMax);
+
+        const float radius = c.dp(8);
+        const ImVec2 radio{panelMin.x + pad + radius,
+                           top + rowHeight * 0.5f};
+
+        const bool selected = m_languagePending == i;
+        list->AddCircle(radio, radius,
+                        selected ? theme::kAccent : theme::kTrack,
+                        0, c.dp(theme::kIconStroke));
+
+        if (selected) {
+            list->AddCircleFilled(radio, radius * 0.5f, theme::kAccent);
+        }
+
+        c.text({radio.x + c.dp(24),
+                top + (rowHeight - c.lineHeight(theme::kBodySize)) * 0.5f},
+               theme::kBodySize, theme::kTextPrimary, label);
+
+        if (m_touch.tapped(rowMin, rowMax)) {
+            m_languagePending = i;
+            m_languageDialogOpen = false;
+            m_languageConfirmOpen = true;
+        }
+    }
+
+    list->PopClipRect();
+
+    const ImVec2 cancelMin{panelMin.x + pad, panelMax.y - c.dp(54)};
+    const ImVec2 cancelMax{panelMax.x - pad, panelMax.y - c.dp(12)};
+
+    if (pillButton(frame, tr(Text::Cancel), cancelMin, cancelMax, false)) {
+        m_languageDialogOpen = false;
+    }
+}
+
 void App::setFullscreen(bool fullscreen) {
     m_fullscreen = fullscreen;
     m_platform.setFullscreen(fullscreen);
