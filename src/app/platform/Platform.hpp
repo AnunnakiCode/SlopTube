@@ -51,6 +51,7 @@ public:
     // to portrait, and the orientation follows the device again once it is held upright.
     void setFullscreen(bool fullscreen);
     void openUrl(std::string_view url);
+    void openYouTubeLogin();
     // Opens the system share sheet for a plain-text message (a video link).
     void share(std::string_view subject, std::string_view text);
     // System feedback (long press, context click) follows the user's touch feedback setting;
