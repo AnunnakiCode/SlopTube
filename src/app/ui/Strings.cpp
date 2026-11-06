@@ -309,6 +309,16 @@ constexpr std::array<Translation, std::to_underlying(Text::Count)> kTranslations
      {"Use device theme", "Utiliser le thème de l'appareil", "Usar el tema del dispositivo"}},
     {Text::ThemeLight, {"Light", "Clair", "Claro"}},
     {Text::ThemeDark, {"Dark", "Sombre", "Oscuro"}},
+   {Text::ThemeDialogTitle,
+    {"App theme", "Thème de l'application", "Aspecto de la app"}},
+   {Text::ThemeAll, {"All themes", "Tous les thèmes", "Todos los temas"}},
+   {Text::ThemeChangeTitle,
+    {"Change theme?", "Changer de thème ?", "¿Cambiar el tema?"}},
+   {Text::ThemeChangeMessage,
+    {"The app will use the selected theme.",
+  "L'application utilisera le thème sélectionné.",
+  "La app utilizará el tema seleccionado."}},
+{Text::ThemeChange, {"Change", "Changer", "Cambiar"}},
 }};
 
 // Catch a missing or misordered row at compile time rather than showing the wrong text.
