@@ -60,8 +60,7 @@ void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
                                                             Text::SizeExtraLarge};
     constexpr std::array<Text, kLanguageChoices> kLanguageLabels{
         Text::LanguagePhone, Text::LanguageEnglish, Text::LanguageFrench, Text::LanguageSpanish};
-    constexpr std::array<Text, kAppearanceChoices> kThemeLabels{Text::ThemeDevice, Text::ThemeLight,
-                                                                Text::ThemeDark};
+    
     const float gutter = c.dp(theme::kGutter);
     const float captionHeight = c.lineHeight(theme::kCaptionSize);
     const float chipBlock = row + c.dp(theme::kChipHeight) + gutter;
@@ -69,8 +68,8 @@ void App::drawSettings(Frame& frame, Screen& screen, ImVec2 min, ImVec2 max) {
     const float pageRows = build::kChecksForUpdates ? 6.0f : 5.0f;
     float content = row * pageRows + gutter * 3 + captionHeight;
     if (page == kAppearancePage) {
-        // The theme (a title and three rows), then the text and button size.
-        content = row * 4 + gutter + chipBlock + gutter * 2;
+    // The theme row, then the text and button size.
+    content = row * 2 + chipBlock + gutter * 2;
     } else if (page == kLanguagePage) {
         content = chipBlock + gutter * 2;
     } else if (page == kPlayerPage) {
