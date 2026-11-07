@@ -34,6 +34,7 @@ public final class SlopTubeActivity extends NativeActivity {
     private static final float MAX_PIP_RATIO = 2.39f;
     private static final int NOTIFICATIONS_REQUEST = 1;
     private static final int VOICE_REQUEST = 2;
+    private static final int YOUTUBE_LOGIN_REQUEST = 3;
 
     private boolean pipAllowed;
     private Rational pipAspect = new Rational(16, 9);
