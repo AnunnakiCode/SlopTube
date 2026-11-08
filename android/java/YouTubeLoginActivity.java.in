@@ -20,6 +20,7 @@ public final class YouTubeLoginActivity extends Activity {
 
     private WebView webView;
     private TextView status;
+    private boolean sessionSaved = false;
 
     @Override
     protected void onCreate(Bundle state) {
