@@ -70,6 +70,9 @@ public final class YouTubeLoginActivity extends Activity {
     }
 
     private void checkYouTubeSession() {
+        if (sessionSaved || isFinishing()) {
+        return;
+    }
     CookieManager manager = CookieManager.getInstance();
 
     String youtubeCookies =
