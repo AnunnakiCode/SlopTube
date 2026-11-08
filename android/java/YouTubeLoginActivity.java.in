@@ -69,41 +69,41 @@ public final class YouTubeLoginActivity extends Activity {
     }
 
     private void checkYouTubeSession() {
-        CookieManager manager = CookieManager.getInstance();
+    CookieManager manager = CookieManager.getInstance();
 
-        String youtubeCookies =
-                manager.getCookie("https://www.youtube.com");
-        String musicCookies =
-                manager.getCookie("https://music.youtube.com");
+    String youtubeCookies =
+            manager.getCookie("https://www.youtube.com");
 
-        Map<String, String> values = new HashMap<>();
-        readCookies(values, youtubeCookies);
-        readCookies(values, musicCookies);
-
-        boolean hasSid = values.containsKey("SID");
-        boolean hasSap = values.containsKey("SAPISID")
-                || values.containsKey("__Secure-3PAPISID");
-
-        if (hasSid && hasSap) {
-            manager.flush();
-
-            StringBuilder result = new StringBuilder();
-            for (Map.Entry<String, String> entry : values.entrySet()) {
-                if (result.length() > 0) {
-                    result.append("; ");
-                }
-                result.append(entry.getKey())
-                      .append("=")
-                      .append(entry.getValue());
-            }
-
-            status.setText("Sesión de YouTube detectada");
-            getIntent().putExtra("youtube_cookies", result.toString());
-            setResult(RESULT_OK, getIntent());
-        } else {
-            status.setText("Inicia sesión para conectar tu cuenta de YouTube");
-        }
+    if (youtubeCookies == null || youtubeCookies.isEmpty()) {
+        status.setText("Inicia sesión en tu cuenta de YouTube");
+        return;
     }
+
+    Map<String, String> values = new HashMap<>();
+    readCookies(values, youtubeCookies);
+
+    boolean hasSid = values.containsKey("SID");
+    boolean hasSap = values.containsKey("SAPISID")
+            || values.containsKey("__Secure-3PAPISID");
+
+    if (!hasSid || !hasSap) {
+        status.setText("Inicia sesión para conectar tu cuenta");
+        return;
+    }
+
+    try {
+        manager.flush();
+        YouTubeSessionStore.save(this, youtubeCookies);
+
+        status.setText("Cuenta de YouTube conectada");
+        setResult(RESULT_OK);
+        finish();
+
+    } catch (java.security.GeneralSecurityException error) {
+        status.setText("No se pudo proteger la sesión");
+        setResult(RESULT_CANCELED);
+    }
+}
 
     private static void readCookies(
             Map<String, String> destination,
