@@ -264,6 +264,21 @@ public final class SlopTubeActivity extends NativeActivity {
         return intent.getParcelableExtra(Intent.EXTRA_INTENT);
     }
 
+
+    // --- YouTube login -------------------------------------------------------------------------
+
+public void startYouTubeLogin() {
+    runOnUiThread(() -> {
+        Intent intent = new Intent(this, YouTubeLoginActivity.class);
+        try {
+            startActivityForResult(intent, YOUTUBE_LOGIN_REQUEST);
+        } catch (ActivityNotFoundException | SecurityException unavailable) {
+            // Login activity unavailable.
+        }
+    });
+}
+
+
     // --- Voice search ---------------------------------------------------------------------------
 
     // Android's speech recognizer (the Google app's, usually); the query comes back through
