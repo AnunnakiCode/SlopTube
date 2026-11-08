@@ -302,28 +302,12 @@ void Platform::openUrl(std::string_view url) {
 void Platform::openYouTubeLogin() {
     const LocalFrame frame(m_env);
 
-    jclass activityClass = m_env->FindClass(
-        "android/content/Intent");
-
-    jclass loginClass = m_env->FindClass(
-        "studio/kanye/sloptube/YouTubeLoginActivity");
-
-    jobject intent = m_env->NewObject(
-        activityClass,
-        m_env->GetMethodID(
-            activityClass,
-            "<init>",
-            "(Landroid/content/Context;Ljava/lang/Class;)V"),
-        m_app->activity->clazz,
-        loginClass);
-
     jobject activity = m_app->activity->clazz;
+    jclass activityClass = m_env->GetObjectClass(activity);
 
     m_env->CallVoidMethod(
         activity,
-        method(m_env, activity, "startActivity",
-               "(Landroid/content/Intent;)V"),
-        intent);
+        method(m_env, activityClass, "startYouTubeLogin", "()V"));
 }
 
 void Platform::share(std::string_view subject, std::string_view text) {
