@@ -298,16 +298,27 @@ public void startYouTubeLogin() {
     }
 
     @Override
-    protected void onActivityResult(int request, int result, Intent data) {
-        super.onActivityResult(request, result, data);
-        if (request != VOICE_REQUEST || result != RESULT_OK || data == null) {
-            return;
+protected void onActivityResult(int request, int result, Intent data) {
+    super.onActivityResult(request, result, data);
+
+    if (request == YOUTUBE_LOGIN_REQUEST) {
+        if (result == RESULT_OK) {
+            // YouTube login completed. Session handling will be added separately.
         }
-        ArrayList<String> heard = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-        if (heard != null && !heard.isEmpty() && heard.get(0) != null) {
-            nativeVoiceSearch(heard.get(0));
-        }
+        return;
     }
+
+    if (request != VOICE_REQUEST || result != RESULT_OK || data == null) {
+        return;
+    }
+
+    ArrayList<String> heard =
+            data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+
+    if (heard != null && !heard.isEmpty() && heard.get(0) != null) {
+        nativeVoiceSearch(heard.get(0));
+    }
+}
 
     // --- Upload notifications -------------------------------------------------------------------
 
