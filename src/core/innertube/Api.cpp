@@ -795,8 +795,50 @@ Result<void> Api::trackPlayback(
         }
 
         std::string url(baseUrl);
-        url += url.find('?') == std::string::npos ? '?' : '&';
-        url += parameters;
+
+        const auto fragmentPos = url.find('#');
+        std::string fragment;
+        if (fragmentPos != std::string::npos) {
+            fragment = url.substr(fragmentPos);
+            url.resize(fragmentPos);
+        }
+
+        const auto queryPos = url.find('?');
+        std::string path = url.substr(0, queryPos);
+        std::string query;
+
+        if (queryPos != std::string::npos) {
+            std::string_view existing(url.data() + queryPos + 1,
+                                      url.size() - queryPos - 1);
+
+            while (!existing.empty()) {
+                const auto separator = existing.find('&');
+                const auto item = existing.substr(0, separator);
+                const auto equals = item.find('=');
+                const auto key = item.substr(0, equals);
+
+                if (key != "cpn" && key != "ver" && key != "el" &&
+                    key != "len" && key != "cmt" && key != "st" &&
+                    key != "et") {
+                    if (!query.empty()) {
+                        query += '&';
+                    }
+                    query += item;
+                }
+
+                if (separator == std::string_view::npos) {
+                    break;
+                }
+                existing.remove_prefix(separator + 1);
+            }
+        }
+
+        if (!query.empty()) {
+            query += '&';
+        }
+        query += parameters;
+
+        url = path + '?' + query + fragment;
 
     http::Request request{
             .method = http::Method::Get,
@@ -812,7 +854,7 @@ Result<void> Api::trackPlayback(
 
         if (!response->ok()) {
             return fail("playback tracking: HTTP " +
-                        std::to_string(response->status));
+            std::to_string(response->status));
         }
 
         return {};
