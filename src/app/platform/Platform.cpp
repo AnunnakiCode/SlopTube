@@ -299,15 +299,26 @@ void Platform::openUrl(std::string_view url) {
     }
 }
 
+
 void Platform::openYouTubeLogin() {
     const LocalFrame frame(m_env);
 
     jobject activity = m_app->activity->clazz;
-    jclass activityClass = m_env->GetObjectClass(activity);
 
-    m_env->CallVoidMethod(
-        activity,
-        method(m_env, activityClass, "startYouTubeLogin", "()V"));
+    jmethodID loginMethod =
+        method(m_env, activity, "startYouTubeLogin", "()V");
+
+    if (loginMethod == nullptr || m_env->ExceptionCheck()) {
+        m_env->ExceptionClear();
+        return;
+    }
+
+    m_env->CallVoidMethod(activity, loginMethod);
+
+    if (m_env->ExceptionCheck()) {
+        m_env->ExceptionDescribe();
+        m_env->ExceptionClear();
+    }
 }
 
 void Platform::share(std::string_view subject, std::string_view text) {
