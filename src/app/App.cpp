@@ -802,21 +802,32 @@ void App::trackPlayback() {
         : std::max<std::int64_t>(
               0, m_player.positionUs() / 1'000'000);
 
-    m_tasks.run([this, playbackUrl, watchtimeUrl, cpn,
-                 duration, position, ended] {
-        auto result = m_api.trackPlayback(
-            playbackUrl, watchtimeUrl, cpn, duration, position);
+    
+m_tasks.run([this, playbackUrl, watchtimeUrl, cpn,
+             duration, position, ended] {
+    auto result = m_api.trackPlayback(
+        playbackUrl, watchtimeUrl, cpn, duration, position);
 
-        m_tasks.post([this, success = static_cast<bool>(result), ended] {
-            m_trackingPending = false;
-            m_trackingSent = success;
+    const bool success = static_cast<bool>(result);
+    const std::string error = success
+        ? std::string{}
+        : result.error().message;
 
-            if (ended && success) {
-                m_trackingFinalSent = true;
-            }
-        });
+    m_tasks.post([this, success, error, ended] {
+        m_trackingPending = false;
+        m_trackingSent = success;
+
+        if (ended && success) {
+            m_trackingFinalSent = true;
+        }
+
+        if (!success) {
+            m_watch.error = "YouTube history tracking: " + error;
+        }
     });
+});
 }
+
 
 int App::screenLines() const {
     const ImVec2 display = ImGui::GetIO().DisplaySize;
