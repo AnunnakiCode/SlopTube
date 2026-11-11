@@ -126,6 +126,7 @@ public final class YouTubeLoginActivity extends Activity {
         }
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void onBackPressed() {
         if (webView != null && webView.canGoBack()) {
