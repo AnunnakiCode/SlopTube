@@ -765,9 +765,14 @@ void App::beginPlayback(innertube::Player player) {
     }
 }
 
+
 void App::trackPlayback() {
+    const auto state = m_player.state();
+    const bool ended = state == media::PlayerState::Ended;
+
     if (m_trackingPending ||
-        m_player.state() != media::PlayerState::Playing ||
+        (state != media::PlayerState::Playing &&
+         !(ended && !m_trackingFinalSent)) ||
         m_playbackTrackingUrl.empty() ||
         m_trackingCpn.empty() ||
         !m_session.signedIn()) {
@@ -775,7 +780,12 @@ void App::trackPlayback() {
     }
 
     const double currentTime = now();
-    if (m_lastTrackingAt > 0 && currentTime - m_lastTrackingAt < 15.0) {
+
+    // Send progress every 15 seconds while playing.
+    // When the video ends, send the final position immediately.
+    if (!ended &&
+        m_lastTrackingAt > 0 &&
+        currentTime - m_lastTrackingAt < 15.0) {
         return;
     }
 
@@ -786,16 +796,24 @@ void App::trackPlayback() {
     const std::string watchtimeUrl = m_watchtimeTrackingUrl;
     const std::string cpn = m_trackingCpn;
     const std::int64_t duration = m_trackingDurationSeconds;
-    const std::int64_t position =
-        std::max<std::int64_t>(0, m_player.positionUs() / 1'000'000);
 
-    m_tasks.run([this, playbackUrl, watchtimeUrl, cpn, duration, position] {
+    const std::int64_t position = ended
+        ? duration
+        : std::max<std::int64_t>(
+              0, m_player.positionUs() / 1'000'000);
+
+    m_tasks.run([this, playbackUrl, watchtimeUrl, cpn,
+                 duration, position, ended] {
         auto result = m_api.trackPlayback(
             playbackUrl, watchtimeUrl, cpn, duration, position);
 
-        m_tasks.post([this, success = static_cast<bool>(result)] {
+        m_tasks.post([this, success = static_cast<bool>(result), ended] {
             m_trackingPending = false;
             m_trackingSent = success;
+
+            if (ended && success) {
+                m_trackingFinalSent = true;
+            }
         });
     });
 }
