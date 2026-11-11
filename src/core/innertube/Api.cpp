@@ -840,26 +840,33 @@ Result<void> Api::trackPlayback(
 
         url = path + '?' + query + fragment;
 
-    http::Request request{
+        http::Request request{
             .method = http::Method::Get,
             .url = std::move(url),
             .retryOnStall = false,
         };
 
-        auto response = m_http.send(request);
+        if (m_session.signedIn()) {
+            auto authorization = m_session.authorization();
+            if (!authorization) {
+                return std::unexpected(authorization.error());
+            }
+            request.headers.push_back("Authorization: " + *authorization);
+        }
 
+        auto response = m_http.send(request);
         if (!response) {
             return std::unexpected(response.error());
         }
 
         if (!response->ok()) {
             return fail("playback tracking: HTTP " +
-            std::to_string(response->status));
+                        std::to_string(response->status));
         }
 
         return {};
     };
-
+    
     const std::string common =
         "cpn=" + std::string(cpn) +
         "&ver=2&el=detailpage&len=" +
