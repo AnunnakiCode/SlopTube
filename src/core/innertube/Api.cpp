@@ -804,15 +804,6 @@ Result<void> Api::trackPlayback(
             .retryOnStall = false,
         };
 
-        if (m_session.signedIn()) {
-            auto authorization = m_session.authorization();
-            if (!authorization) {
-                return std::unexpected(authorization.error());
-            }
-
-            request.headers.push_back("Authorization: " + *authorization);
-        }
-
         auto response = m_http.send(request);
 
         if (!response) {
