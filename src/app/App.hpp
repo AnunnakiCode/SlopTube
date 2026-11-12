@@ -604,6 +604,7 @@ void trackPlayback();
     std::string m_playbackTrackingUrl;
     std::string m_watchtimeTrackingUrl;
     std::string m_trackingCpn;
+    std::string m_youtubeCookies;
     std::int64_t m_trackingDurationSeconds = 0;
     double m_lastTrackingAt = 0;
     bool m_trackingPending = false;
