@@ -55,23 +55,41 @@ public final class SlopTubeActivity extends NativeActivity {
     
 
     @Override
-    protected void onCreate(Bundle state) {
-        super.onCreate(state);
-        // NativeActivity has just opened the library; loading it again through Java only runs
-        // JNI_OnLoad (with this class loader), which registers the natives below. Loaded any
-        // earlier, from a static initializer, System.loadLibrary hung before JNI_OnLoad on about
-        // every other launch of a Galaxy A14, the app stuck on its splash screen.
-        System.loadLibrary("@SLOPTUBE_LIB_NAME@");
-        // The volume buttons set the media volume, even between videos.
-        setVolumeControlStream(AudioManager.STREAM_MUSIC);
-        // Relaunched from recents or recreated, the intent is the old one: its video was opened.
-        Intent intent = getIntent();
-        boolean fromHistory = intent != null
-                && (intent.getFlags() & Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) != 0;
-        if (state == null && !fromHistory) {
-            deliver(intent);
+protected void onCreate(Bundle state) {
+    super.onCreate(state);
+
+    System.loadLibrary("@SLOPTUBE_LIB_NAME@");
+
+    // Restaurar las cookies de YouTube guardadas.
+    try {
+        String cookies = YouTubeSessionStore.load(this);
+
+        if (cookies != null && !cookies.isEmpty()) {
+            nativeSetYouTubeCookies(cookies);
+
+            android.util.Log.i(
+                    "SlopTube",
+                    "YouTube session cookies restored");
         }
+    } catch (Exception error) {
+        android.util.Log.e(
+                "SlopTube",
+                "Could not restore YouTube session",
+                error);
     }
+
+    // The volume buttons set the media volume, even between videos.
+    setVolumeControlStream(AudioManager.STREAM_MUSIC);
+
+    // Relaunched from recents or recreated, the intent is the old one: its video was opened.
+    Intent intent = getIntent();
+    boolean fromHistory = intent != null
+            && (intent.getFlags() & Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) != 0;
+
+    if (state == null && !fromHistory) {
+        deliver(intent);
+    }
+}
 
     @Override
     protected void onNewIntent(Intent intent) {
