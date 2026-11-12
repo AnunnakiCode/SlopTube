@@ -75,7 +75,8 @@ public:
     std::string_view watchtimeTrackingUrl,
     std::string_view cpn,
     std::int64_t durationSeconds,
-    std::int64_t positionSeconds);
+    std::int64_t positionSeconds,
+    std::string_view youtubeCookies);
 
     // Subtitle tracks of a video, and the languages they can be translated into.
     [[nodiscard]] Result<Captions> captions(std::string_view videoId);
