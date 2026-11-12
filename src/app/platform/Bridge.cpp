@@ -18,6 +18,7 @@ namespace {
 std::mutex g_mutex;
 std::function<void(BridgeEvent)> g_handler; // Under g_mutex.
 std::vector<BridgeEvent> g_pending;         // Under g_mutex: sent before a handler was set.
+std::function<void(std::string)> g_youtubeCookiesHandler;
 
 void dispatchLocked(BridgeEvent event);
 
@@ -53,6 +54,17 @@ void JNICALL updateFailed(JNIEnv* env, jclass, jstring reason) {
 
 void JNICALL voiceSearch(JNIEnv* env, jclass, jstring query) {
     dispatch({.kind = BridgeEvent::Kind::VoiceSearch, .query = nativeString(env, query)});
+}
+
+void JNICALL setYouTubeCookies(JNIEnv* env, jclass, jstring cookies) {
+    guarded("YouTube cookies bridge", [&] {
+        std::string value = nativeString(env, cookies);
+
+        const std::scoped_lock lock(g_mutex);
+        if (g_youtubeCookiesHandler && !value.empty()) {
+            g_youtubeCookiesHandler(std::move(value));
+        }
+    });
 }
 
 void JNICALL pictureInPictureDismissed(JNIEnv*, jclass) {
@@ -128,6 +140,11 @@ void setBridgeHandler(std::function<void(BridgeEvent)> handler) {
         }
         g_pending.clear();
     }
+}
+
+void setYouTubeCookiesHandler(std::function<void(std::string)> handler) {
+    const std::scoped_lock lock(g_mutex);
+    g_youtubeCookiesHandler = std::move(handler);
 }
 
 jstring javaString(JNIEnv* env, std::string_view utf8) {
@@ -216,6 +233,8 @@ extern "C" JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void*) {
                         reinterpret_cast<void*>(&updateFailed)},
         JNINativeMethod{"nativeVoiceSearch", "(Ljava/lang/String;)V",
                         reinterpret_cast<void*>(&voiceSearch)},
+        JNINativeMethod{"nativeSetYouTubeCookies", "(Ljava/lang/String;)V",
+                reinterpret_cast<void*>(&setYouTubeCookies)},
     };
     const std::array service{
         JNINativeMethod{"nativeMediaCommand", "(IJ)V", reinterpret_cast<void*>(&mediaCommand)},
