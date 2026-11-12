@@ -823,6 +823,14 @@ void App::trackPlayback() {
     const std::string watchtimeUrl = m_watchtimeTrackingUrl;
     const std::string cpn = m_trackingCpn;
     const std::string youtubeCookies = m_youtubeCookies;
+
+   __android_log_print(
+    ANDROID_LOG_INFO,
+    "SlopTubeTracking",
+    "COOKIES: %s, length=%zu",
+    youtubeCookies.empty() ? "EMPTY" : "PRESENT",
+    youtubeCookies.size());
+    
     const std::int64_t duration = m_trackingDurationSeconds;
 
     const std::int64_t position = ended
