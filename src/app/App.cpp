@@ -822,6 +822,7 @@ void App::trackPlayback() {
     const std::string playbackUrl = m_playbackTrackingUrl;
     const std::string watchtimeUrl = m_watchtimeTrackingUrl;
     const std::string cpn = m_trackingCpn;
+    const std::string youtubeCookies = m_youtubeCookies;
     const std::int64_t duration = m_trackingDurationSeconds;
 
     const std::int64_t position = ended
@@ -838,9 +839,14 @@ void App::trackPlayback() {
         watchtimeUrl.empty() ? "EMPTY" : "PRESENT");
 
     m_tasks.run([this, playbackUrl, watchtimeUrl, cpn,
-                 duration, position, ended] {
+             youtubeCookies, duration, position, ended] {
         auto result = m_api.trackPlayback(
-            playbackUrl, watchtimeUrl, cpn, duration, position);
+    playbackUrl,
+    watchtimeUrl,
+    cpn,
+    duration,
+    position,
+    youtubeCookies);
 
         const bool success = static_cast<bool>(result);
         const std::string error = success
