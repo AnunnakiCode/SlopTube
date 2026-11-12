@@ -778,6 +778,7 @@ Result<Player> Api::player(std::string_view videoId) {
 }
 
 
+
 Result<void> Api::trackPlayback(
     std::string_view playbackTrackingUrl,
     std::string_view watchtimeTrackingUrl,
@@ -790,8 +791,37 @@ Result<void> Api::trackPlayback(
         return fail("playback tracking: missing URL or CPN");
     }
 
+    // YouTube incluye la duración original en el parámetro len.
+    // Conservamos ese valor para construir las peticiones.
+    double videoLength = static_cast<double>(durationSeconds);
+
+    const auto lenPos = playbackTrackingUrl.find("len=");
+    if (lenPos != std::string_view::npos) {
+        const auto start = lenPos + 4;
+        const auto end = playbackTrackingUrl.find('&', start);
+        const auto value = playbackTrackingUrl.substr(
+            start,
+            end == std::string_view::npos
+                ? playbackTrackingUrl.size() - start
+                : end - start);
+
+        try {
+            videoLength = std::stod(std::string(value));
+        } catch (...) {
+            return fail("playback tracking: invalid len parameter");
+        }
+    }
+
+    if (videoLength <= 1.0) {
+        return fail("playback tracking: invalid video length");
+    }
+
+    // yt-dlp utiliza un segundo antes del final.
+    const std::string watchedTime =
+        std::to_string(videoLength - 1.0);
+
     const auto sendTracking = [&](std::string_view baseUrl,
-                                  const std::string& parameters) -> Result<void> {
+                                  bool isWatchtime) -> Result<void> {
         if (baseUrl.empty()) {
             return {};
         }
@@ -800,18 +830,20 @@ Result<void> Api::trackPlayback(
 
         const auto fragmentPos = url.find('#');
         std::string fragment;
+
         if (fragmentPos != std::string::npos) {
             fragment = url.substr(fragmentPos);
             url.resize(fragmentPos);
         }
 
         const auto queryPos = url.find('?');
-        std::string path = url.substr(0, queryPos);
+        const std::string path = url.substr(0, queryPos);
         std::string query;
 
         if (queryPos != std::string::npos) {
-            std::string_view existing(url.data() + queryPos + 1,
-                                      url.size() - queryPos - 1);
+            std::string_view existing(
+                url.data() + queryPos + 1,
+                url.size() - queryPos - 1);
 
             while (!existing.empty()) {
                 const auto separator = existing.find('&');
@@ -819,9 +851,9 @@ Result<void> Api::trackPlayback(
                 const auto equals = item.find('=');
                 const auto key = item.substr(0, equals);
 
-                if (key != "cpn" && key != "ver" && key != "el" &&
-                    key != "len" && key != "cmt" && key != "st" &&
-                    key != "et") {
+                if (key != "cpn" && key != "ver" &&
+                    key != "el" && key != "cmt" &&
+                    key != "st" && key != "et") {
                     if (!query.empty()) {
                         query += '&';
                     }
@@ -831,14 +863,27 @@ Result<void> Api::trackPlayback(
                 if (separator == std::string_view::npos) {
                     break;
                 }
+
                 existing.remove_prefix(separator + 1);
             }
         }
 
-        if (!query.empty()) {
-            query += '&';
+        const auto append = [&](std::string_view parameter) {
+            if (!query.empty()) {
+                query += '&';
+            }
+            query += parameter;
+        };
+
+        append("ver=2");
+        append("cpn=" + std::string(cpn));
+        append("cmt=" + watchedTime);
+        append("el=detailpage");
+
+        if (isWatchtime) {
+            append("st=0");
+            append("et=" + watchedTime);
         }
-        query += parameters;
 
         url = path + '?' + query + fragment;
 
@@ -853,7 +898,9 @@ Result<void> Api::trackPlayback(
             if (!authorization) {
                 return std::unexpected(authorization.error());
             }
-            request.headers.push_back("Authorization: " + *authorization);
+
+            request.headers.push_back(
+                "Authorization: " + *authorization);
         }
 
         if (!youtubeCookies.empty()) {
@@ -862,35 +909,28 @@ Result<void> Api::trackPlayback(
         }
 
         auto response = m_http.send(request);
+
         if (!response) {
             return std::unexpected(response.error());
         }
 
         if (!response->ok()) {
-            return fail("playback tracking: HTTP " +
-                        std::to_string(response->status));
+            return fail(
+                "playback tracking: HTTP " +
+                std::to_string(response->status));
         }
 
         return {};
     };
 
-    const std::string common =
-        "cpn=" + std::string(cpn) +
-        "&ver=2&el=detailpage&len=" +
-        std::to_string(durationSeconds);
-
-    auto playback = sendTracking(
-        playbackTrackingUrl,
-        common + "&cmt=" + std::to_string(positionSeconds));
+    auto playback = sendTracking(playbackTrackingUrl, false);
 
     if (!playback) {
         return std::unexpected(playback.error());
     }
 
     if (!watchtimeTrackingUrl.empty()) {
-        auto watchtime = sendTracking(
-            watchtimeTrackingUrl,
-            common + "&st=0&et=" + std::to_string(positionSeconds));
+        auto watchtime = sendTracking(watchtimeTrackingUrl, true);
 
         if (!watchtime) {
             return std::unexpected(watchtime.error());
