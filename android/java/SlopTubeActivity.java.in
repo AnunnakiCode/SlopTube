@@ -51,6 +51,9 @@ public final class SlopTubeActivity extends NativeActivity {
 
     private static native void nativeVoiceSearch(String query);
 
+   private static native void nativeSetYouTubeCookies(String cookies);
+    
+
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
@@ -302,11 +305,23 @@ protected void onActivityResult(int request, int result, Intent data) {
     super.onActivityResult(request, result, data);
 
     if (request == YOUTUBE_LOGIN_REQUEST) {
-        if (result == RESULT_OK) {
-            // YouTube login completed. Session handling will be added separately.
+    if (result == RESULT_OK) {
+        try {
+            String cookies = YouTubeSessionStore.load(this);
+
+            if (cookies != null && !cookies.isEmpty()) {
+                nativeSetYouTubeCookies(cookies);
+            }
+        } catch (Exception error) {
+            android.util.Log.e(
+                    "SlopTube",
+                    "Could not load YouTube session",
+                    error
+            );
         }
-        return;
     }
+    return;
+}
 
     if (request != VOICE_REQUEST || result != RESULT_OK || data == null) {
         return;
