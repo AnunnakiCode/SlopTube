@@ -43,6 +43,7 @@ struct BridgeEvent {
 // Events arrive on Java threads, so `handler` must be thread-safe. Events sent while no handler
 // is set (before the app starts) wait for the next one.
 void setBridgeHandler(std::function<void(BridgeEvent)> handler);
+void setYouTubeCookiesHandler(std::function<void(std::string)> handler);
 
 // NewStringUTF takes modified UTF-8, which emoji (four-byte sequences) break.
 [[nodiscard]] jstring javaString(JNIEnv* env, std::string_view utf8);
