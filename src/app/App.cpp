@@ -225,15 +225,24 @@ App::App(android_app* native)
     }
     // Java events (media buttons, picture-in-picture, notification taps) arrive on Java threads.
     setBridgeHandler([this](BridgeEvent event) {
-        m_tasks.post(
-            [this, event = std::move(event)]() mutable { onBridgeEvent(std::move(event)); });
-    });
+    m_tasks.post(
+        [this, event = std::move(event)]() mutable {
+            onBridgeEvent(std::move(event));
+        });
+});
 
-    reloadAccountFeeds();
-    refreshProfile();
+setYouTubeCookiesHandler([this](std::string cookies) {
+    m_tasks.post([this, cookies = std::move(cookies)]() mutable {
+        m_youtubeCookies = std::move(cookies);
+    });
+});
+
+reloadAccountFeeds();
+refreshProfile();
 }
 
 App::~App() {
+    setYouTubeCookiesHandler(nullptr);
     setBridgeHandler(nullptr);
     m_platform.stopPlayback();
     m_signIn.cancelled->store(true);
