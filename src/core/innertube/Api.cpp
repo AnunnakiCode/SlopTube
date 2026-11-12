@@ -777,12 +777,14 @@ Result<Player> Api::player(std::string_view videoId) {
     return fail("player: " + failures);
 }
 
+
 Result<void> Api::trackPlayback(
     std::string_view playbackTrackingUrl,
     std::string_view watchtimeTrackingUrl,
     std::string_view cpn,
     std::int64_t durationSeconds,
-    std::int64_t positionSeconds) {
+    std::int64_t positionSeconds,
+    std::string_view youtubeCookies) {
 
     if (playbackTrackingUrl.empty() || cpn.empty()) {
         return fail("playback tracking: missing URL or CPN");
@@ -854,6 +856,11 @@ Result<void> Api::trackPlayback(
             request.headers.push_back("Authorization: " + *authorization);
         }
 
+        if (!youtubeCookies.empty()) {
+            request.headers.push_back(
+                "Cookie: " + std::string(youtubeCookies));
+        }
+
         auto response = m_http.send(request);
         if (!response) {
             return std::unexpected(response.error());
@@ -866,7 +873,7 @@ Result<void> Api::trackPlayback(
 
         return {};
     };
-    
+
     const std::string common =
         "cpn=" + std::string(cpn) +
         "&ver=2&el=detailpage&len=" +
