@@ -19,6 +19,7 @@ std::mutex g_mutex;
 std::function<void(BridgeEvent)> g_handler; // Under g_mutex.
 std::vector<BridgeEvent> g_pending;         // Under g_mutex: sent before a handler was set.
 std::function<void(std::string)> g_youtubeCookiesHandler;
+std::string g_pendingYouTubeCookies;
 
 void dispatchLocked(BridgeEvent event);
 
@@ -60,9 +61,21 @@ void JNICALL setYouTubeCookies(JNIEnv* env, jclass, jstring cookies) {
     guarded("YouTube cookies bridge", [&] {
         std::string value = nativeString(env, cookies);
 
+        if (value.empty()) {
+            return;
+        }
+
         const std::scoped_lock lock(g_mutex);
-        if (g_youtubeCookiesHandler && !value.empty()) {
+
+        if (g_youtubeCookiesHandler) {
             g_youtubeCookiesHandler(std::move(value));
+        } else {
+            g_pendingYouTubeCookies = std::move(value);
+
+            __android_log_print(
+                ANDROID_LOG_INFO,
+                "SlopTubeTracking",
+                "COOKIES: saved pending App initialization");
         }
     });
 }
@@ -144,7 +157,18 @@ void setBridgeHandler(std::function<void(BridgeEvent)> handler) {
 
 void setYouTubeCookiesHandler(std::function<void(std::string)> handler) {
     const std::scoped_lock lock(g_mutex);
+
     g_youtubeCookiesHandler = std::move(handler);
+
+    if (g_youtubeCookiesHandler && !g_pendingYouTubeCookies.empty()) {
+        __android_log_print(
+            ANDROID_LOG_INFO,
+            "SlopTubeTracking",
+            "COOKIES: delivering pending session to App");
+
+        g_youtubeCookiesHandler(std::move(g_pendingYouTubeCookies));
+        g_pendingYouTubeCookies.clear();
+    }
 }
 
 jstring javaString(JNIEnv* env, std::string_view utf8) {
