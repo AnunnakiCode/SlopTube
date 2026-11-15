@@ -816,9 +816,14 @@ Result<void> Api::trackPlayback(
         return fail("playback tracking: invalid video length");
     }
 
-    // yt-dlp utiliza un segundo antes del final.
-    const std::string watchedTime =
-        std::to_string(videoLength - 1.0);
+    // Utilizar la posición real alcanzada en el reproductor.
+   const double watchedPosition = std::clamp(
+    static_cast<double>(positionSeconds),
+    0.0,
+    videoLength);
+
+   const std::string watchedTime =
+    std::to_string(watchedPosition);
 
     const auto sendTracking = [&](std::string_view baseUrl,
                                   bool isWatchtime) -> Result<void> {
