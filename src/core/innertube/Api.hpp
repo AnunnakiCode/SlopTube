@@ -71,13 +71,13 @@ public:
 
     // Sends playback tracking to YouTube.
     [[nodiscard]] Result<void> trackPlayback(
-    std::string_view playbackTrackingUrl,
-    std::string_view watchtimeTrackingUrl,
-    std::string_view cpn,
-    std::int64_t durationSeconds,
-    std::int64_t positionSeconds,
-    std::string_view youtubeCookies,
-    bool sendPlayback);
+        std::string_view playbackTrackingUrl,
+        std::string_view watchtimeTrackingUrl,
+        std::string_view cpn,
+        std::int64_t durationSeconds,
+        std::int64_t positionSeconds,
+        std::string_view youtubeCookies,
+        bool sendPlayback);
 
     // Subtitle tracks of a video, and the languages they can be translated into.
     [[nodiscard]] Result<Captions> captions(std::string_view videoId);
