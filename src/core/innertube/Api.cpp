@@ -920,7 +920,7 @@ Result<void> Api::trackPlayback(
             return std::unexpected(response.error());
         }
 
-                if (!response->ok()) {
+        if (!response->ok()) {
             __android_log_print(
                 ANDROID_LOG_ERROR,
                 "SlopTubeTracking",
@@ -940,7 +940,7 @@ Result<void> Api::trackPlayback(
             isWatchtime ? "WATCHTIME" : "PLAYBACK",
             response->status);
 
-      return {};
+        return {};
     };
 
     if (sendPlayback) {
