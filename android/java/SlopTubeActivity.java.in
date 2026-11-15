@@ -319,6 +319,7 @@ public void startYouTubeLogin() {
     }
 
     
+
 @Override
 protected void onActivityResult(int request, int result, Intent data) {
     super.onActivityResult(request, result, data);
@@ -331,9 +332,9 @@ protected void onActivityResult(int request, int result, Intent data) {
                 android.util.Log.i(
                         "SlopTube",
                         "RESTORED COOKIES: " +
-                        (cookies != null && !cookies.isEmpty()
-                                ? "PRESENT, length=" + cookies.length()
-                                : "EMPTY")
+                                (cookies != null && !cookies.isEmpty()
+                                        ? "PRESENT, length=" + cookies.length()
+                                        : "EMPTY")
                 );
 
                 if (cookies != null && !cookies.isEmpty()) {
@@ -354,8 +355,6 @@ protected void onActivityResult(int request, int result, Intent data) {
         }
         return;
     }
-}
-
 
     if (request != VOICE_REQUEST || result != RESULT_OK || data == null) {
         return;
@@ -368,6 +367,7 @@ protected void onActivityResult(int request, int result, Intent data) {
         nativeVoiceSearch(heard.get(0));
     }
 }
+
 
     // --- Upload notifications -------------------------------------------------------------------
 
