@@ -318,28 +318,44 @@ public void startYouTubeLogin() {
         });
     }
 
-    @Override
+    
+@Override
 protected void onActivityResult(int request, int result, Intent data) {
     super.onActivityResult(request, result, data);
 
     if (request == YOUTUBE_LOGIN_REQUEST) {
-    if (result == RESULT_OK) {
-        try {
-            String cookies = YouTubeSessionStore.load(this);
+        if (result == RESULT_OK) {
+            try {
+                String cookies = YouTubeSessionStore.load(this);
 
-            if (cookies != null && !cookies.isEmpty()) {
-                nativeSetYouTubeCookies(cookies);
+                android.util.Log.i(
+                        "SlopTube",
+                        "RESTORED COOKIES: " +
+                        (cookies != null && !cookies.isEmpty()
+                                ? "PRESENT, length=" + cookies.length()
+                                : "EMPTY")
+                );
+
+                if (cookies != null && !cookies.isEmpty()) {
+                    nativeSetYouTubeCookies(cookies);
+
+                    android.util.Log.i(
+                            "SlopTube",
+                            "COOKIES SENT TO NATIVE"
+                    );
+                }
+            } catch (Exception error) {
+                android.util.Log.e(
+                        "SlopTube",
+                        "Could not load YouTube session",
+                        error
+                );
             }
-        } catch (Exception error) {
-            android.util.Log.e(
-                    "SlopTube",
-                    "Could not load YouTube session",
-                    error
-            );
         }
+        return;
     }
-    return;
 }
+
 
     if (request != VOICE_REQUEST || result != RESULT_OK || data == null) {
         return;
