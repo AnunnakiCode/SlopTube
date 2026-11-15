@@ -10,6 +10,7 @@
 #include <cctype>
 #include <utility>
 #include <random>
+#include <android/log.h>
 
 namespace sloptube::innertube {
 namespace {
@@ -919,11 +920,25 @@ Result<void> Api::trackPlayback(
             return std::unexpected(response.error());
         }
 
-        if (!response->ok()) {
+                if (!response->ok()) {
+            __android_log_print(
+                ANDROID_LOG_ERROR,
+                "SlopTubeTracking",
+                "%s HTTP FAILED: %ld",
+                isWatchtime ? "WATCHTIME" : "PLAYBACK",
+                response->status);
+
             return fail(
                 "playback tracking: HTTP " +
                 std::to_string(response->status));
         }
+
+        __android_log_print(
+            ANDROID_LOG_INFO,
+            "SlopTubeTracking",
+            "%s HTTP STATUS: %ld",
+            isWatchtime ? "WATCHTIME" : "PLAYBACK",
+            response->status);
 
         return {};
     };
