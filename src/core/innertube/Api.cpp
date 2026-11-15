@@ -786,8 +786,8 @@ Result<void> Api::trackPlayback(
     std::string_view cpn,
     std::int64_t durationSeconds,
     std::int64_t positionSeconds,
-    std::string_view youtubeCookies) {
-
+    std::string_view youtubeCookies,
+    bool sendPlayback) {
     if (playbackTrackingUrl.empty() || cpn.empty()) {
         return fail("playback tracking: missing URL or CPN");
     }
@@ -940,13 +940,15 @@ Result<void> Api::trackPlayback(
             isWatchtime ? "WATCHTIME" : "PLAYBACK",
             response->status);
 
-        return {};
+      return {};
     };
 
-    auto playback = sendTracking(playbackTrackingUrl, false);
+    if (sendPlayback) {
+        auto playback = sendTracking(playbackTrackingUrl, false);
 
-    if (!playback) {
-        return std::unexpected(playback.error());
+        if (!playback) {
+            return std::unexpected(playback.error());
+        }
     }
 
     if (!watchtimeTrackingUrl.empty()) {
