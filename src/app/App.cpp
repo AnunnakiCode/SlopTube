@@ -846,24 +846,30 @@ void App::trackPlayback() {
         cpn.c_str(),
         watchtimeUrl.empty() ? "EMPTY" : "PRESENT");
 
+    const bool sendPlayback = !m_trackingSent;
+
     m_tasks.run([this, playbackUrl, watchtimeUrl, cpn,
-             youtubeCookies, duration, position, ended] {
+                 youtubeCookies, duration, position, ended, sendPlayback] {
         auto result = m_api.trackPlayback(
-    playbackUrl,
-    watchtimeUrl,
-    cpn,
-    duration,
-    position,
-    youtubeCookies);
+            playbackUrl,
+            watchtimeUrl,
+            cpn,
+            duration,
+            position,
+            youtubeCookies,
+            sendPlayback);
 
         const bool success = static_cast<bool>(result);
         const std::string error = success
             ? std::string{}
             : result.error().message;
 
-        m_tasks.post([this, success, error, ended] {
+        m_tasks.post([this, success, error, ended, sendPlayback] {
             m_trackingPending = false;
-            m_trackingSent = success;
+
+            if (success && sendPlayback) {
+                m_trackingSent = true;
+            }
 
             if (ended && success) {
                 m_trackingFinalSent = true;
@@ -881,8 +887,6 @@ void App::trackPlayback() {
             }
         });
     });
-}
-
 
 
 int App::screenLines() const {
