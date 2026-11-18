@@ -887,7 +887,7 @@ void App::trackPlayback() {
             }
         });
     });
-
+}
 
 int App::screenLines() const {
     const ImVec2 display = ImGui::GetIO().DisplaySize;
