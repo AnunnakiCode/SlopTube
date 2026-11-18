@@ -818,13 +818,13 @@ Result<void> Api::trackPlayback(
     }
 
     // Utilizar la posición real alcanzada en el reproductor.
-   const double watchedPosition = std::clamp(
-    static_cast<double>(positionSeconds),
-    0.0,
-    videoLength);
+    const double watchedPosition = std::clamp(
+        static_cast<double>(positionSeconds),
+        0.0,
+        videoLength);
 
-   const std::string watchedTime =
-    std::to_string(watchedPosition);
+    const std::string watchedTime =
+        std::to_string(watchedPosition);
 
     const auto sendTracking = [&](std::string_view baseUrl,
                                   bool isWatchtime) -> Result<void> {
