@@ -75,6 +75,7 @@ public:
         std::string_view watchtimeTrackingUrl,
         std::string_view cpn,
         std::int64_t durationSeconds,
+        std::int64_t startPositionSeconds,
         std::int64_t positionSeconds,
         std::string_view youtubeCookies,
         bool sendPlayback);
