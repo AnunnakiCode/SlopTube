@@ -836,6 +836,13 @@ Result<void> Api::trackPlayback(
         }
     }
 
+    __android_log_print(
+        ANDROID_LOG_ERROR,
+        "SlopTubeTracking",
+        "VIDEO LENGTH DEBUG: durationSeconds=%lld videoLength=%.3f",
+        static_cast<long long>(durationSeconds),
+        videoLength);
+
     if (videoLength <= 1.0) {
         return fail("playback tracking: invalid video length");
     }
