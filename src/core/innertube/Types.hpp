@@ -189,6 +189,11 @@ struct Player {
     std::string cpn;
 };
 
+struct PlaybackTracking {
+    std::string playbackTrackingUrl;
+    std::string watchtimeTrackingUrl;
+};
+
 // A subtitle track of a video, fetched from the timedtext service.
 struct CaptionTrack {
     std::string url;      // timedtext address, without a format.
