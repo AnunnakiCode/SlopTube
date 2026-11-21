@@ -793,6 +793,10 @@ Result<void> Api::trackPlayback(
         return fail("playback tracking: missing URL or CPN");
     }
 
+    if (watchtimeTrackingUrl.empty()) {
+        return fail("playback tracking: watchtime URL is empty");
+    }
+
     // YouTube incluye la duración original en el parámetro len.
     // Conservamos ese valor para construir las peticiones.
     double videoLength = static_cast<double>(durationSeconds);
