@@ -779,6 +779,24 @@ Result<Player> Api::player(std::string_view videoId) {
 }
 
 
+Result<PlaybackTracking> Api::playbackTracking(
+    std::string_view videoId,
+    std::string_view cpn) {
+    auto body = openBody();
+
+    body.field("videoId", videoId)
+        .field("cpn", cpn)
+        .field("contentCheckOk", true)
+        .field("racyCheckOk", true);
+
+    auto root = checked(Endpoint::Player, ClientKind::Tv, std::move(body));
+    if (!root) {
+        return std::unexpected(root.error());
+    }
+
+    return parser::playbackTracking(*root);
+}
+
 
 Result<void> Api::trackPlayback(
     std::string_view playbackTrackingUrl,
