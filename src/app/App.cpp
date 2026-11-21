@@ -826,21 +826,9 @@ void App::trackPlayback() {
         return;
     }
 
-    if (m_playbackTrackingUrl.empty()) {
-        __android_log_print(ANDROID_LOG_ERROR, "SlopTubeTracking",
-                            "STOP: playback URL is empty");
-        return;
-    }
-
-    if (m_trackingCpn.empty()) {
-        __android_log_print(ANDROID_LOG_ERROR, "SlopTubeTracking",
-                            "STOP: CPN is empty");
-        return;
-    }
-
-    if (!m_session.signedIn()) {
-        __android_log_print(ANDROID_LOG_ERROR, "SlopTubeTracking",
-                            "STOP: session is not signed in");
+    if (m_playbackTrackingUrl.empty() ||
+        m_trackingCpn.empty() ||
+        !m_session.signedIn()) {
         return;
     }
 
@@ -852,6 +840,18 @@ void App::trackPlayback() {
         return;
     }
 
+    const std::int64_t duration = m_trackingDurationSeconds;
+
+    const std::int64_t position = ended
+        ? duration
+        : std::max<std::int64_t>(
+              0, m_player.positionUs() / 1'000'000);
+
+    const std::int64_t startPosition =
+        m_lastTrackedPositionSeconds;
+
+    const bool sendPlayback = !m_trackingSent;
+
     m_lastTrackingAt = currentTime;
     m_trackingPending = true;
 
@@ -860,37 +860,15 @@ void App::trackPlayback() {
     const std::string cpn = m_trackingCpn;
     const std::string youtubeCookies = m_youtubeCookies;
 
-   __android_log_print(
-    ANDROID_LOG_INFO,
-    "SlopTubeTracking",
-    "COOKIES: %s, length=%zu",
-    youtubeCookies.empty() ? "EMPTY" : "PRESENT",
-    youtubeCookies.size());
-    
-    const std::int64_t duration = m_trackingDurationSeconds;
-
-    const std::int64_t position = ended
-        ? duration
-        : std::max<std::int64_t>(
-              0, m_player.positionUs() / 1'000'000);
-
-    __android_log_print(
-        ANDROID_LOG_INFO, "SlopTubeTracking",
-        "SENDING: position=%lld duration=%lld CPN=%s watchtimeURL=%s",
-        static_cast<long long>(position),
-        static_cast<long long>(duration),
-        cpn.c_str(),
-        watchtimeUrl.empty() ? "EMPTY" : "PRESENT");
-
-    const bool sendPlayback = !m_trackingSent;
-
     m_tasks.run([this, playbackUrl, watchtimeUrl, cpn,
-                 youtubeCookies, duration, position, ended, sendPlayback] {
+                 youtubeCookies, duration, startPosition,
+                 position, ended, sendPlayback] {
         auto result = m_api.trackPlayback(
             playbackUrl,
             watchtimeUrl,
             cpn,
             duration,
+            startPosition,
             position,
             youtubeCookies,
             sendPlayback);
@@ -900,22 +878,30 @@ void App::trackPlayback() {
             ? std::string{}
             : result.error().message;
 
-        m_tasks.post([this, success, error, ended, sendPlayback] {
+        m_tasks.post([this, success, error, startPosition,
+                      position, ended, sendPlayback] {
             m_trackingPending = false;
 
-            if (success && sendPlayback) {
-                m_trackingSent = true;
-            }
+            if (success) {
+                m_lastTrackedPositionSeconds =
+                    std::max(m_lastTrackedPositionSeconds, position);
 
-            if (ended && success) {
-                m_trackingFinalSent = true;
+                if (sendPlayback) {
+                    m_trackingSent = true;
+                }
+
+                if (ended) {
+                    m_trackingFinalSent = true;
+                }
             }
 
             __android_log_print(
                 success ? ANDROID_LOG_INFO : ANDROID_LOG_ERROR,
                 "SlopTubeTracking",
-                "RESULT: %s %s",
+                "RESULT: %s start=%lld position=%lld %s",
                 success ? "SUCCESS" : "FAILED",
+                static_cast<long long>(startPosition),
+                static_cast<long long>(position),
                 error.c_str());
 
             if (!success) {
