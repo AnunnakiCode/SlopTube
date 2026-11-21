@@ -785,6 +785,7 @@ Result<void> Api::trackPlayback(
     std::string_view watchtimeTrackingUrl,
     std::string_view cpn,
     std::int64_t durationSeconds,
+    std::int64_t startPositionSeconds,
     std::int64_t positionSeconds,
     std::string_view youtubeCookies,
     bool sendPlayback) {
@@ -887,7 +888,16 @@ Result<void> Api::trackPlayback(
         append("el=detailpage");
 
         if (isWatchtime) {
-            append("st=0");
+            const auto startPosition = std::clamp(
+                startPositionSeconds,
+                std::int64_t{0},
+                static_cast<std::int64_t>(videoLength));
+
+            if (startPosition >= static_cast<std::int64_t>(watchedPosition)) {
+                return {};
+            }
+
+            append("st=" + std::to_string(startPosition));
             append("et=" + watchedTime);
         }
 
