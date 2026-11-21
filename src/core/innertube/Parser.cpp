@@ -519,6 +519,23 @@ Result<Player> player(Element root) {
     return result;
 }
 
+Result<PlaybackTracking> playbackTracking(Element root) {
+    PlaybackTracking result;
+
+    result.playbackTrackingUrl = std::string(
+        json::string(root, "/playbackTracking/videostatsPlaybackUrl/baseUrl"));
+
+    result.watchtimeTrackingUrl = std::string(
+        json::string(root, "/playbackTracking/videostatsWatchtimeUrl/baseUrl"));
+
+    if (result.playbackTrackingUrl.empty() ||
+        result.watchtimeTrackingUrl.empty()) {
+        return fail("playback tracking: YouTube did not provide tracking URLs");
+    }
+
+    return result;
+}
+
 Captions captions(Element root) {
     Captions result;
     Element list;
