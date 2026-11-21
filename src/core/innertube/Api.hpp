@@ -68,6 +68,9 @@ public:
     // Next page of `page`; requires a non-empty `page.continuation`.
     [[nodiscard]] Result<Page> continuation(const Page& page);
     [[nodiscard]] Result<Player> player(std::string_view videoId);
+    [[nodiscard]] Result<PlaybackTracking> playbackTracking(
+        std::string_view videoId,
+        std::string_view cpn);
 
     // Sends playback tracking to YouTube.
     [[nodiscard]] Result<void> trackPlayback(
