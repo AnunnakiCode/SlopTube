@@ -20,6 +20,7 @@ namespace sloptube::innertube::parser {
 
 [[nodiscard]] Storyboard storyboard(std::string_view spec);
 [[nodiscard]] Result<Player> player(json::Element root);
+[[nodiscard]] Result<PlaybackTracking> playbackTracking(json::Element root);
 
 // Subtitle tracks listed by a `player` response; empty when the client is not given any.
 [[nodiscard]] Captions captions(json::Element root);
