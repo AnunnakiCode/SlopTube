@@ -805,6 +805,49 @@ void App::beginPlayback(innertube::Player player) {
     m_trackingSent = false;
     m_trackingFinalSent = false;
 
+    
+    // Fetch YouTube TV playback tracking URLs for this video.
+    const std::string trackingVideoId = m_watch.item.id;
+    const std::string trackingCpn = m_trackingCpn;
+
+    m_tasks.run([this, trackingVideoId, trackingCpn] {
+        auto result = m_api.playbackTracking(
+            trackingVideoId,
+            trackingCpn);
+
+        if (!result) {
+            __android_log_print(
+                ANDROID_LOG_ERROR,
+                "SlopTubeTracking",
+                "TV TRACKING URL FAILED: %s",
+                result.error().message.c_str());
+            return;
+        }
+
+        auto tracking = std::move(*result);
+
+        m_tasks.post([this, trackingVideoId, trackingCpn,
+                      tracking = std::move(tracking)]() mutable {
+            // Do not apply URLs belonging to a previous video.
+            if (m_watch.item.id != trackingVideoId ||
+                m_trackingCpn != trackingCpn) {
+                return;
+            }
+
+            m_playbackTrackingUrl =
+                std::move(tracking.playbackTrackingUrl);
+
+            m_watchtimeTrackingUrl =
+                std::move(tracking.watchtimeTrackingUrl);
+
+            __android_log_print(
+                ANDROID_LOG_INFO,
+                "SlopTubeTracking",
+                "TV TRACKING URLS LOADED");
+        });
+    });
+
+
     m_player.open(std::move(player), screenLines());
     if (m_player.qualities().empty()) {
         m_watch.error = tr(Text::PlaybackFailed);
