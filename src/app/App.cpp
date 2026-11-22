@@ -234,6 +234,12 @@ App::App(android_app* native)
 setYouTubeCookiesHandler([this](std::string cookies) {
     m_tasks.post([this, cookies = std::move(cookies)]() mutable {
         m_youtubeCookies = std::move(cookies);
+
+        __android_log_print(
+            ANDROID_LOG_INFO,
+            "SlopTubeTracking",
+            "COOKIES RECEIVED: %s",
+            m_youtubeCookies.empty() ? "NO" : "YES");
     });
 });
 
