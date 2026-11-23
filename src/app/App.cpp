@@ -763,6 +763,8 @@ void App::startPlayback(const std::string& videoId) {
 }
 
 void App::beginPlayback(innertube::Player player) {
+    ++m_trackingGeneration;
+    
     m_watch.details = player.details;
 
     // Save YouTube playback tracking data before moving the player.
@@ -871,6 +873,7 @@ void App::trackPlayback() {
     m_lastTrackingAt = currentTime;
     m_trackingPending = true;
 
+    const std::uint64_t generation = m_trackingGeneration;
     const std::string playbackUrl = m_playbackTrackingUrl;
     const std::string watchtimeUrl = m_watchtimeTrackingUrl;
     const std::string cpn = m_trackingCpn;
@@ -878,7 +881,7 @@ void App::trackPlayback() {
 
     m_tasks.run([this, playbackUrl, watchtimeUrl, cpn,
                  youtubeCookies, duration, startPosition,
-                 position, ended, sendPlayback] {
+                 position, ended, sendPlayback, generation] {
         auto result = m_api.trackPlayback(
             playbackUrl,
             watchtimeUrl,
@@ -895,8 +898,13 @@ void App::trackPlayback() {
             : result.error().message;
 
         m_tasks.post([this, success, error, startPosition,
-                      position, ended, sendPlayback] {
-            m_trackingPending = false;
+              position, ended, sendPlayback, generation] {
+
+    if (generation != m_trackingGeneration) {
+        return;
+    }
+
+    m_trackingPending = false;
 
             if (success) {
                 m_lastTrackedPositionSeconds =
@@ -976,6 +984,13 @@ std::optional<std::pair<Item, VideoSource>> App::nextVideo() const {
 }
 
 void App::closeVideo() {
+    ++m_trackingGeneration;
+    m_trackingPending = false;
+    m_trackingSent = false;
+    m_trackingFinalSent = false;
+    m_lastTrackedPositionSeconds = 0;
+    m_lastTrackingAt = 0;
+
     m_mini.watch.reset();
     m_subtitles->close();
     m_speedHeld = false;
