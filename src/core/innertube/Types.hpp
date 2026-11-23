@@ -186,6 +186,7 @@ struct Player {
     Storyboard storyboard;
     std::string playbackTrackingUrl;
     std::string watchtimeTrackingUrl;
+    std::string atrUrl;
     std::string cpn;
 };
 
