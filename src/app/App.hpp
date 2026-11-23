@@ -612,6 +612,7 @@ void trackPlayback();
     bool m_trackingPending = false;
     bool m_trackingSent = false;
     bool m_trackingFinalSent = false;
+    std::uint64_t m_trackingGeneration = 0;
     float m_density;
     Touch m_touch;
     Insets m_insets;
