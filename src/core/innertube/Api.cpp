@@ -946,6 +946,16 @@ Result<void> Api::trackPlayback(
 
             request.headers.push_back(
                 "Authorization: " + *authorization);
+
+            __android_log_print(
+                ANDROID_LOG_INFO,
+                "SlopTubeTracking",
+                "OAUTH AUTHORIZATION: PRESENT");
+        } else {
+            __android_log_print(
+                ANDROID_LOG_ERROR,
+                "SlopTubeTracking",
+                "OAUTH AUTHORIZATION: MISSING");
         }
 
         if (!youtubeCookies.empty()) {
