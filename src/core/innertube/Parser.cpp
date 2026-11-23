@@ -516,6 +516,8 @@ Result<Player> player(Element root) {
         json::string(root, "/playbackTracking/videostatsPlaybackUrl/baseUrl");
     result.watchtimeTrackingUrl =
         json::string(root, "/playbackTracking/videostatsWatchtimeUrl/baseUrl");
+    result.atrUrl =
+        json::string(root, "/playbackTracking/atrUrl/baseUrl");
     return result;
 }
 
