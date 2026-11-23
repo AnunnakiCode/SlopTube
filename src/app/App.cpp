@@ -768,6 +768,7 @@ void App::beginPlayback(innertube::Player player) {
     // Save YouTube playback tracking data before moving the player.
     m_playbackTrackingUrl = std::move(player.playbackTrackingUrl);
     m_watchtimeTrackingUrl = std::move(player.watchtimeTrackingUrl);
+    m_atrUrl = std::move(player.atrUrl);
 
     const auto logParameterNames = [](const char* label, const std::string& url) {
         std::string names;
@@ -800,6 +801,14 @@ void App::beginPlayback(innertube::Player player) {
 
     logParameterNames("PLAYBACK", m_playbackTrackingUrl);
     logParameterNames("WATCHTIME", m_watchtimeTrackingUrl);
+
+    logParameterNames("ATR", m_atrUrl);
+
+    __android_log_print(
+    ANDROID_LOG_INFO,
+    "SlopTubeTracking",
+    "ATR URL: %s",
+    m_atrUrl.empty() ? "EMPTY" : "PRESENT");
 
     m_trackingDurationSeconds = player.details.durationSeconds;
     m_trackingCpn = std::move(player.cpn);
