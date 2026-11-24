@@ -789,6 +789,12 @@ Result<PlaybackTracking> Api::playbackTracking(
         .field("contentCheckOk", true)
         .field("racyCheckOk", true);
 
+    body.beginObject("playbackContext")
+        .beginObject("contentPlaybackContext")
+        .field("html5Preference", "HTML5_PREF_WANTS")
+        .endObject()
+        .endObject();
+
     auto root = checked(Endpoint::Player, ClientKind::Tv, std::move(body));
     if (!root) {
         return std::unexpected(root.error());
