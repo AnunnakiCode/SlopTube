@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <array>
 #include <cctype>
+#include <charconv>
+#include <cstdint>
 #include <utility>
 #include <random>
 #include <android/log.h>
@@ -250,6 +252,77 @@ json::Writer openBody() {
     json::Writer body;
     body.beginObject();
     return body;
+}
+
+Result<std::string> tvSignatureTimestamp(const http::Client& http) {
+    const auto fetch = [&](std::string url) -> std::string {
+        http::Request request{
+            .method = http::Method::Get,
+            .url = std::move(url),
+            .retryOnStall = true,
+        };
+
+        auto response = http.send(request);
+        if (!response || !response->ok()) {
+            return {};
+        }
+
+        return response->body;
+    };
+
+    const std::string page = fetch("https://www.youtube.com/tv");
+
+    if (page.empty()) {
+        return fail("TV player: could not load YouTube TV page");
+    }
+
+    std::size_t search = 0;
+
+    while ((search = page.find("/s/player/", search)) != std::string::npos) {
+        const auto end = page.find(".js", search);
+
+        if (end == std::string::npos || end - search > 200) {
+            search += 10;
+            continue;
+        }
+
+        const std::string path = page.substr(search, end + 3 - search);
+
+        if (path.find("tv-player") == std::string::npos) {
+            search = end + 3;
+            continue;
+        }
+
+        std::string url = "https://www.youtube.com" + path;
+        const std::string javascript = fetch(std::move(url));
+
+        const auto key = javascript.find("signatureTimestamp");
+
+        if (key != std::string::npos) {
+            const auto colon = javascript.find(':', key);
+
+            if (colon != std::string::npos) {
+                auto start = javascript.find_first_of("0123456789", colon);
+
+                if (start != std::string::npos && start - colon < 10) {
+                    auto finish = start;
+
+                    while (finish < javascript.size() &&
+                           std::isdigit(static_cast<unsigned char>(javascript[finish]))) {
+                        ++finish;
+                    }
+
+                    if (finish > start) {
+                        return javascript.substr(start, finish - start);
+                    }
+                }
+            }
+        }
+
+        search = end + 3;
+    }
+
+    return fail("TV player: signatureTimestamp not found");
 }
 
 } // namespace
@@ -782,6 +855,24 @@ Result<Player> Api::player(std::string_view videoId) {
 Result<PlaybackTracking> Api::playbackTracking(
     std::string_view videoId,
     std::string_view cpn) {
+
+    auto signatureTimestamp = tvSignatureTimestamp(m_http);
+    if (!signatureTimestamp) {
+        return std::unexpected(signatureTimestamp.error());
+    }
+
+    std::int64_t timestamp = 0;
+    const auto [ptr, ec] = std::from_chars(
+        signatureTimestamp->data(),
+        signatureTimestamp->data() + signatureTimestamp->size(),
+        timestamp
+    );
+
+    if (ec != std::errc{} ||
+        ptr != signatureTimestamp->data() + signatureTimestamp->size()) {
+        return fail("TV player: invalid signatureTimestamp");
+    }
+
     auto body = openBody();
 
     body.field("videoId", videoId)
@@ -792,6 +883,7 @@ Result<PlaybackTracking> Api::playbackTracking(
     body.beginObject("playbackContext")
         .beginObject("contentPlaybackContext")
         .field("html5Preference", "HTML5_PREF_WANTS")
+        .field("signatureTimestamp", timestamp)
         .endObject()
         .endObject();
 
