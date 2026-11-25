@@ -752,31 +752,6 @@ void App::startPlayback(const std::string& videoId) {
     m_tasks.run([this, id = videoId] {
         auto player = m_api.player(id);
 
-        if (player) {
-            // Request separate YouTube tracking URLs using the authenticated TV client.
-            // If this request fails, keep the original player tracking URLs.
-            auto tracking = m_api.playbackTracking(id, player->cpn);
-
-            if (tracking) {
-                player->playbackTrackingUrl =
-                    std::move(tracking->playbackTrackingUrl);
-
-                player->watchtimeTrackingUrl =
-                    std::move(tracking->watchtimeTrackingUrl);
-
-                __android_log_print(
-                    ANDROID_LOG_INFO,
-                    "SlopTubeTracking",
-                    "TV TRACKING URLS: RECEIVED");
-            } else {
-                __android_log_print(
-                    ANDROID_LOG_WARN,
-                    "SlopTubeTracking",
-                    "TV TRACKING REQUEST FAILED: %s",
-                    tracking.error().message.c_str());
-            }
-        }
-
         m_tasks.post([this, id, player = std::move(player)] {
             if (m_watch.item.id != id) {
                 return;
